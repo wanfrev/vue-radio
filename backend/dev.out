@@ -1,0 +1,66 @@
+
+> radio-backend@1.0.0 dev
+> tsx watch src/server.ts
+
+[15:52:25] [32mINFO[39m (5944): [36mServer listening at http://0.0.0.0:3000[39m
+[15:52:25] [32mINFO[39m (5944): [36m🚀 Radio backend listening on http://0.0.0.0:3000[39m
+[16:06:25] [32mINFO[39m (5944): [36mincoming request[39m
+    reqId: "req-1"
+    req: {
+      "method": "GET",
+      "url": "/health",
+      "hostname": "localhost:3000",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 58972
+    }
+[16:06:25] [32mINFO[39m (5944): [36mrequest completed[39m
+    reqId: "req-1"
+    res: {
+      "statusCode": 200
+    }
+    responseTime: 7.784299999475479
+[16:06:27] [32mINFO[39m (5944): [36mincoming request[39m
+    reqId: "req-2"
+    req: {
+      "method": "GET",
+      "url": "/api/now-playing",
+      "hostname": "localhost:3000",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 58973
+    }
+[16:06:27] [32mINFO[39m (5944): [36mrequest completed[39m
+    reqId: "req-2"
+    res: {
+      "statusCode": 200
+    }
+    responseTime: 1.7311000004410744
+[16:06:29] [32mINFO[39m (5944): [36mincoming request[39m
+    reqId: "req-3"
+    req: {
+      "method": "GET",
+      "url": "/api/history",
+      "hostname": "localhost:3000",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 58974
+    }
+[16:06:29] [32mINFO[39m (5944): [36mrequest completed[39m
+    reqId: "req-3"
+    res: {
+      "statusCode": 200
+    }
+    responseTime: 1.4351000003516674
+[16:06:31] [32mINFO[39m (5944): [36mincoming request[39m
+    reqId: "req-4"
+    req: {
+      "method": "GET",
+      "url": "/api/stream-url",
+      "hostname": "localhost:3000",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 58975
+    }
+[16:06:31] [32mINFO[39m (5944): [36mrequest completed[39m
+    reqId: "req-4"
+    res: {
+      "statusCode": 200
+    }
+    responseTime: 0.9939000001177192
