@@ -27,10 +27,10 @@ onMounted(async () => {
       audio.value.src = info.url;
       audio.value.preload = 'none';
       audio.value.crossOrigin = 'anonymous';
-      // volume is applied by useMediaSession onMounted
     }
   } catch (e) {
-    player.setError('Could not load stream URL');
+    player.setError('Stream no disponible — la UI funciona sin audio');
+    player.setStream('#no-stream', player.stationName || 'Radio');
     console.warn('[AudioCore] stream-url failed', e);
   }
 });

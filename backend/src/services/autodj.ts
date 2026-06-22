@@ -59,13 +59,14 @@ class AutoDjClient {
   }
 
   private mock(): NowPlaying {
+    const coverArt = 'http://localhost:5173/src/assets/sarah.jpg';
     const fixtures: NowPlaying[] = [
       {
         songId: 'mock-1',
         title: 'Cosmic Drift',
         artist: 'Solar Fields',
         album: 'Movements',
-        art: null,
+        art: coverArt,
         elapsed: 42,
         duration: 384,
         isLive: false,
@@ -78,7 +79,7 @@ class AutoDjClient {
         title: 'Teardrop',
         artist: 'Massive Attack',
         album: 'Mezzanine',
-        art: null,
+        art: coverArt,
         elapsed: 11,
         duration: 330,
         isLive: false,
@@ -91,7 +92,7 @@ class AutoDjClient {
         title: 'Windowlicker',
         artist: 'Aphex Twin',
         album: 'Windowlicker EP',
-        art: null,
+        art: coverArt,
         elapsed: 0,
         duration: 372,
         isLive: false,
