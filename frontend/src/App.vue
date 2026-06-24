@@ -7,11 +7,9 @@ import DonateModal from '@/components/DonateModal.vue';
 import CosmicBackground from '@/components/CosmicBackground.vue';
 import { useNowPlaying } from '@/composables/useNowPlaying';
 import { useDonationsStore } from '@/stores/donations';
-import { useNowPlayingStore } from '@/stores/nowPlaying';
 
 const audioCore = ref<InstanceType<typeof AudioCore> | null>(null);
 useNowPlaying();
-const np = useNowPlayingStore();
 
 const donations = useDonationsStore();
 
@@ -24,10 +22,7 @@ function onPause(): void { audioCore.value?.pause(); }
 </script>
 
 <template>
-  <CosmicBackground
-    :image-url="np.current?.art ?? null"
-    :seed="(np.current?.title ?? '') + '|' + (np.current?.artist ?? '')"
-  />
+  <CosmicBackground />
 
   <div class="min-h-screen flex flex-col text-slate-100 relative">
     <WelcomeOverlay :on-enter="onPlay" />

@@ -47,17 +47,17 @@ const tabs: { key: Tab; label: string; icon: string }[] = [
 <template>
   <div class="glass-strong rounded-2xl sm:rounded-3xl h-full min-h-[400px] md:min-h-0 flex flex-col overflow-hidden">
     <!-- Tabs -->
-    <div class="flex items-center gap-1 px-3 pt-3 pb-2 border-b border-white/5 overflow-x-auto shrink-0">
+    <div class="flex items-center gap-1 px-3 pt-3 pb-2 border-b border-white/10 overflow-x-auto shrink-0">
       <button
         v-for="tab in tabs" :key="tab.key" type="button"
-        :class="['text-xs px-3 py-1.5 rounded-full whitespace-nowrap transition-all duration-200',
+        :class="['text-xs px-3 py-1.5 rounded-full whitespace-nowrap transition-all duration-200 font-medium',
           active === tab.key
-            ? 'text-white font-medium'
-            : 'text-slate-400 hover:text-white',
+            ? 'text-white'
+            : 'text-slate-300 hover:text-white hover:bg-white/5',
           tab.key === 'donate' && active === tab.key
-            ? 'bg-fuchsia-500/20'
+            ? 'bg-fuchsia-500/30 shadow-[0_0_8px_rgba(244,114,182,0.3)]'
             : active === tab.key
-              ? 'bg-white/10'
+              ? 'bg-cyber-cyan/20 shadow-[0_0_8px_rgba(34,211,238,0.2)]'
               : '']"
         @click="active = tab.key"
       >{{ tab.label }}</button>
@@ -171,9 +171,9 @@ const tabs: { key: Tab; label: string; icon: string }[] = [
     </div>
 
     <!-- Admin link -->
-    <div class="px-4 py-2 border-t border-white/5 shrink-0">
-      <RouterLink to="/admin" class="text-[9px] text-slate-600 hover:text-slate-400 transition tracking-wider uppercase inline-flex items-center gap-1">
-        <span class="h-1 w-1 rounded-full bg-slate-700" /> Admin
+    <div class="px-4 py-2 border-t border-white/10 shrink-0">
+      <RouterLink to="/admin" class="text-xs text-slate-400 hover:text-cyber-cyan transition tracking-wider uppercase inline-flex items-center gap-1">
+        <span class="h-1.5 w-1.5 rounded-full bg-cyber-cyan/60" /> Admin
       </RouterLink>
     </div>
   </div>
