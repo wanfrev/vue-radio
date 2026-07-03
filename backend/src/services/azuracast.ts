@@ -36,6 +36,39 @@ export const azuracast = {
     }
   },
 
+  async skipSong(): Promise<boolean> {
+    if (!hasConfig) return false;
+    try {
+      await client.post(`/station/${env.AZURACAST_STATION_ID}/backend/skip`);
+      return true;
+    } catch (err) {
+      console.warn('[azuracast] skipSong failed', (err as Error).message);
+      return false;
+    }
+  },
+
+  async stopAutodj(): Promise<boolean> {
+    if (!hasConfig) return false;
+    try {
+      await client.post(`/station/${env.AZURACAST_STATION_ID}/backend/stop`);
+      return true;
+    } catch (err) {
+      console.warn('[azuracast] stopAutodj failed', (err as Error).message);
+      return false;
+    }
+  },
+
+  async restartAutodj(): Promise<boolean> {
+    if (!hasConfig) return false;
+    try {
+      await client.post(`/station/${env.AZURACAST_STATION_ID}/backend/restart`);
+      return true;
+    } catch (err) {
+      console.warn('[azuracast] restartAutodj failed', (err as Error).message);
+      return false;
+    }
+  },
+
   async disconnectLiveDj(): Promise<boolean> {
     if (!hasConfig) return false;
     try {

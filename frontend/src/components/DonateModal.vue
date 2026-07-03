@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, watch } from 'vue';
 import { useDonationsStore } from '@/stores/donations';
+import { useUiStore } from '@/stores/ui';
 import { useClipboard } from '@/composables/useClipboard';
 
 const donations = useDonationsStore();
+const ui = useUiStore();
 const { copied: copyState, copy } = useClipboard();
 let lastCopiedId = -1;
 
@@ -13,10 +15,12 @@ function copyClabe(id: number, clabe: string): void {
 }
 
 function onKeydown(e: KeyboardEvent): void {
-  if (e.key === 'Escape') donations.closeModal();
+  if (e.key === 'Escape') ui.close();
 }
 
-watch(() => donations.showModal, (open) => {
+const isOpen = () => ui.activeModal === 'donate';
+
+watch(isOpen, (open) => {
   if (open) document.body.style.overflow = 'hidden';
   else document.body.style.overflow = '';
 });
@@ -40,9 +44,9 @@ const typeLabel: Record<string, string> = {
   <Teleport to="body">
     <Transition name="modal">
       <div
-        v-if="donations.showModal"
+        v-if="ui.activeModal === 'donate'"
         class="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-        @click.self="donations.closeModal()"
+        @click.self="ui.close()"
       >
         <div
           class="relative w-full sm:max-w-md max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-slate-900 ring-1 ring-slate-800 shadow-2xl px-5 py-6 sm:p-6"
@@ -55,7 +59,7 @@ const typeLabel: Record<string, string> = {
               type="button"
               class="text-slate-400 hover:text-white transition p-1"
               aria-label="Cerrar"
-              @click="donations.closeModal()"
+              @click="ui.close()"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
                 <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd" />

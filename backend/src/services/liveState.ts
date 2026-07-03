@@ -16,7 +16,6 @@ class LiveStateService {
 
     const status = await azuracast.liveStatus();
     if (!status) {
-      // No Azuracast config or request failed — return cached or false
       return cached ?? { isLive: false, streamerName: null, lastChecked: 0 };
     }
 
@@ -27,6 +26,24 @@ class LiveStateService {
     };
     this.cache.set('live-status', entry);
     return entry;
+  }
+
+  async skip(): Promise<boolean> {
+    const ok = await azuracast.skipSong();
+    if (ok) this.cache.delete('live-status');
+    return ok;
+  }
+
+  async stopAutodj(): Promise<boolean> {
+    const ok = await azuracast.stopAutodj();
+    if (ok) this.cache.delete('live-status');
+    return ok;
+  }
+
+  async restartAutodj(): Promise<boolean> {
+    const ok = await azuracast.restartAutodj();
+    if (ok) this.cache.delete('live-status');
+    return ok;
   }
 
   async disconnect(): Promise<boolean> {

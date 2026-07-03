@@ -1,5 +1,6 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
+import helmet from 'helmet';
 import rateLimit from '@fastify/rate-limit';
 import cookie from '@fastify/cookie';
 import sensible from '@fastify/sensible';
@@ -24,6 +25,14 @@ async function buildServer(): Promise<FastifyInstance> {
   });
 
   await app.register(sensible);
+
+  const helmetMiddleware = helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: false,
+  });
+  app.addHook('onRequest', (req, reply, done) => {
+    helmetMiddleware(req.raw, reply.raw, (err?: unknown) => done(err as Error | undefined));
+  });
 
   await app.register(cors, {
     origin: (origin, cb) => {

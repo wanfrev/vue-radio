@@ -1,15 +1,5 @@
 import { defineStore } from 'pinia';
 
-/**
- * The audio element is the *only* thing in the app that owns the actual
- * <audio> instance. The store just tracks the state that the UI needs to
- * reflect.
- *
- * IMPORTANT: never bind `src` reactively from this store to the <audio>
- * element. The stream URL is set once on mount, and only `play()` / `pause()`
- * and the `volume` are driven from here. Updating `src` would reload the
- * stream and cause an audible gap.
- */
 export const usePlayerStore = defineStore('player', {
   state: () => ({
     isPlaying: false,
@@ -19,6 +9,7 @@ export const usePlayerStore = defineStore('player', {
     streamUrl: '' as string,
     stationName: 'Radio' as string,
     error: null as string | null,
+    actionToken: 0,
   }),
 
   getters: {
@@ -34,6 +25,15 @@ export const usePlayerStore = defineStore('player', {
     setPlaying(v: boolean): void { this.isPlaying = v; },
     setBuffering(v: boolean): void { this.isBuffering = v; },
     setError(e: string | null): void { this.error = e; },
+
+    requestPlay(): void {
+      this.actionToken = Date.now();
+      this.error = null;
+    },
+
+    requestPause(): void {
+      this.actionToken = Date.now();
+    },
 
     setVolume(v: number): void {
       this.volume = Math.max(0, Math.min(1, v));

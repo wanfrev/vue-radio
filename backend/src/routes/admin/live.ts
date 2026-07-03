@@ -15,7 +15,34 @@ export async function adminLiveRoutes(app: FastifyInstance): Promise<void> {
     };
   });
 
-  app.post('/disconnect', async (req, reply) => {
+  app.post('/skip', async (_req, reply) => {
+    const ok = await liveState.skip();
+    if (ok) return { ok: true };
+    if (!liveState.isAvailable) {
+      return reply.code(400).send({ error: 'Azuracast not configured' });
+    }
+    return reply.code(500).send({ error: 'Failed to skip song' });
+  });
+
+  app.post('/stop-autodj', async (_req, reply) => {
+    const ok = await liveState.stopAutodj();
+    if (ok) return { ok: true };
+    if (!liveState.isAvailable) {
+      return reply.code(400).send({ error: 'Azuracast not configured' });
+    }
+    return reply.code(500).send({ error: 'Failed to stop AutoDJ' });
+  });
+
+  app.post('/restart-autodj', async (_req, reply) => {
+    const ok = await liveState.restartAutodj();
+    if (ok) return { ok: true };
+    if (!liveState.isAvailable) {
+      return reply.code(400).send({ error: 'Azuracast not configured' });
+    }
+    return reply.code(500).send({ error: 'Failed to restart AutoDJ' });
+  });
+
+  app.post('/disconnect', async (_req, reply) => {
     const ok = await liveState.disconnect();
     if (ok) return { ok: true };
     if (!liveState.isAvailable) {
