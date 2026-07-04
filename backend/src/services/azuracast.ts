@@ -82,6 +82,7 @@ export const azuracast = {
 
   liveDjCredentials(): {
     mountpoint: string;
+    username: string;
     password: string;
     fullUrl: string;
   } | null {
@@ -89,6 +90,7 @@ export const azuracast = {
     const base = env.AZURACAST_BASE_URL!.replace(/\/+$/, '');
     return {
       mountpoint: env.AZURACAST_LIVE_DJ_MOUNTPOINT!,
+      username: env.AZURACAST_LIVE_DJ_USERNAME || 'source',
       password: env.AZURACAST_LIVE_DJ_PASSWORD!,
       fullUrl: `${base}${env.AZURACAST_LIVE_DJ_MOUNTPOINT}`,
     };

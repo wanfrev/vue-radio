@@ -38,6 +38,7 @@ const EnvSchema = z.object({
   AZURACAST_API_KEY: z.string().optional().or(z.literal('').transform(() => undefined)),
   AZURACAST_STATION_ID: z.coerce.number().int().positive().optional().or(z.literal('').transform(() => undefined)),
   AZURACAST_LIVE_DJ_MOUNTPOINT: z.string().optional().or(z.literal('').transform(() => undefined)),
+  AZURACAST_LIVE_DJ_USERNAME: z.string().optional().or(z.literal('').transform(() => undefined)),
   AZURACAST_LIVE_DJ_PASSWORD: z.string().optional().or(z.literal('').transform(() => undefined)),
 });
 

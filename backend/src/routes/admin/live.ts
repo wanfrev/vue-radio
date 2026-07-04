@@ -58,6 +58,7 @@ export async function adminLiveRoutes(app: FastifyInstance): Promise<void> {
     }
     return {
       mountpoint: creds.mountpoint,
+      username: creds.username,
       password: creds.password,
       fullUrl: creds.fullUrl,
     };

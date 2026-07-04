@@ -4,6 +4,7 @@ import { useClipboard } from '@/composables/useClipboard';
 
 interface Credentials {
   mountpoint: string;
+  username: string;
   password: string;
   fullUrl: string;
 }
@@ -37,7 +38,7 @@ function generateButtConf(): string {
     `serverPort=${url.port || '80'}`,
     `password=${creds.value.password}`,
     `mountPoint=${creds.value.mountpoint}`,
-    'serverUser=',
+    `serverUser=${creds.value.username}`,
     'codec=mp3',
     'bitrate=192',
     'channels=stereo',
