@@ -14,20 +14,6 @@ const ui = useUiStore();
       <nav class="flex items-center gap-1">
         <button
           type="button"
-          class="px-3 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
-          @click="ui.toggle('schedule')"
-        >
-          Programación
-        </button>
-        <button
-          type="button"
-          class="px-3 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
-          @click="ui.toggle('contact')"
-        >
-          Contacto
-        </button>
-        <button
-          type="button"
           class="px-3 py-1.5 rounded-full text-xs font-medium text-fuchsia-300 hover:text-fuchsia-200 hover:bg-fuchsia-500/10 transition-colors"
           @click="ui.toggle('donate')"
         >

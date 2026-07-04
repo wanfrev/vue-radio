@@ -5,8 +5,6 @@ import AudioCore from '@/components/AudioCore.vue';
 import WelcomeOverlay from '@/components/WelcomeOverlay.vue';
 import Navbar from '@/components/Navbar.vue';
 import DonateModal from '@/components/DonateModal.vue';
-import ContactModal from '@/components/ContactModal.vue';
-import ScheduleModal from '@/components/ScheduleModal.vue';
 import CosmicBackground from '@/components/CosmicBackground.vue';
 import { useNowPlaying } from '@/composables/useNowPlaying';
 import { useDonationsStore } from '@/stores/donations';
@@ -45,7 +43,5 @@ function onPause(): void { player.requestPause(); }
 
     <AudioCore v-if="!isAdmin" ref="audioCore" />
     <DonateModal v-if="!isAdmin" />
-    <ContactModal v-if="!isAdmin" />
-    <ScheduleModal v-if="!isAdmin" />
   </div>
 </template>
