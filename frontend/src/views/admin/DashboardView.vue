@@ -225,7 +225,7 @@ onBeforeUnmount(() => {
           <!-- Regálame un café -->
           <div class="card">
             <div class="flex items-center justify-between mb-3">
-              <span class="text-xs uppercase tracking-wider text-slate-500">Regálame un café</span>
+              <span class="text-xs uppercase tracking-wider text-slate-500">Invítame un café</span>
               <RouterLink to="/admin/donations" class="text-xs text-cyan-400 hover:text-cyan-300">Editar</RouterLink>
             </div>
             <template v-if="donationAccounts.length > 0">

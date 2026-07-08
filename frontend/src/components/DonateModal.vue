@@ -54,7 +54,7 @@ const typeLabel: Record<string, string> = {
           @click.stop
         >
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold">Regálame un café</h2>
+            <h2 class="text-lg font-bold">Invítame un café</h2>
             <button
               type="button"
               class="text-slate-400 hover:text-white transition p-1"

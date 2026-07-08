@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import { api } from '@/services/api';
 import { usePlayerStore } from '@/stores/player';
 import { useNowPlayingStore } from '@/stores/nowPlaying';
@@ -8,20 +8,22 @@ const audio = ref<HTMLAudioElement | null>(null);
 const player = usePlayerStore();
 const np = useNowPlayingStore();
 
-let lastToken = 0;
-
-watch(() => player.actionToken, (token) => {
-  if (token === lastToken || !audio.value) return;
-  lastToken = token;
+function tryPlay(): void {
+  if (!audio.value || !player.canPlay) return;
   if (audio.value.paused) {
-    audio.value.play().catch((err: unknown) => {
-      player.setError(err instanceof Error ? err.message : 'Playback blocked');
+    audio.value.play().then(() => {
+      player.setPlaying(true);
+      player.error = null;
+      document.removeEventListener('click', onDocumentClick);
+    }).catch(() => {
       player.setPlaying(false);
     });
-  } else {
-    audio.value.pause();
   }
-});
+}
+
+function onDocumentClick(): void {
+  tryPlay();
+}
 
 onMounted(async () => {
   try {
@@ -31,11 +33,17 @@ onMounted(async () => {
       audio.value.src = info.url;
       audio.value.preload = 'none';
     }
+    tryPlay();
+    document.addEventListener('click', onDocumentClick);
   } catch (e) {
     player.setError('Stream no disponible');
     player.setStream('#no-stream', player.stationName || 'Radio');
     console.warn('[AudioCore] stream-url failed', e);
   }
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onDocumentClick);
 });
 
 function updateMetadata(): void {
@@ -63,16 +71,8 @@ onMounted(() => {
   a.addEventListener('playing', () => player.setBuffering(false));
   a.addEventListener('canplay', () => player.setBuffering(false));
   a.addEventListener('error', () => {
-    player.setError('Stream error');
     player.setPlaying(false);
   });
-
-  if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('play', () => player.requestPlay());
-    navigator.mediaSession.setActionHandler('pause', () => player.requestPause());
-    navigator.mediaSession.setActionHandler('seekbackward', null);
-    navigator.mediaSession.setActionHandler('seekforward', null);
-  }
 });
 
 watch(() => player.volume, (v) => { if (audio.value) audio.value.volume = v; });
