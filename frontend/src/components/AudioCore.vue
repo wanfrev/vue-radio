@@ -30,7 +30,6 @@ onMounted(async () => {
     if (audio.value) {
       audio.value.src = info.url;
       audio.value.preload = 'none';
-      audio.value.crossOrigin = 'anonymous';
     }
   } catch (e) {
     player.setError('Stream no disponible');
