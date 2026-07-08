@@ -54,7 +54,7 @@ const typeLabel: Record<string, string> = {
           @click.stop
         >
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold">Apoya la radio</h2>
+            <h2 class="text-lg font-bold">Regálame un café</h2>
             <button
               type="button"
               class="text-slate-400 hover:text-white transition p-1"
@@ -68,7 +68,7 @@ const typeLabel: Record<string, string> = {
           </div>
 
           <p class="text-sm text-slate-400 mb-4">
-            Si disfrutas la radio, considera apoyarnos con una donación.
+          Si te gusta lo que escuchas, invítame un café para mantener la radio al aire.
           </p>
 
           <ul v-if="donations.accounts.length > 0" class="space-y-3">

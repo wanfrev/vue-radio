@@ -17,7 +17,7 @@ const ui = useUiStore();
           class="px-3 py-1.5 rounded-full text-xs font-medium text-fuchsia-300 hover:text-fuchsia-200 hover:bg-fuchsia-500/10 transition-colors"
           @click="ui.toggle('donate')"
         >
-          Donar
+          Regálame un café
         </button>
       </nav>
     </div>
