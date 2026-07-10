@@ -17,7 +17,7 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
         class="w-auto max-h-[75vh] max-w-[95vw] object-contain drop-shadow-[0_0_80px_rgba(34,211,238,0.7)]"
       />
 
-      <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-slate-900/80 border border-slate-800 w-48 -mt-3 -translate-x-4">
+      <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-slate-900/80 border border-slate-800 w-48 -mt-3 -translate-x-8">
         <button type="button" class="text-slate-400 hover:text-white transition shrink-0" @click="player.setMuted(!player.muted)">
           <svg v-if="player.muted || volumePct === 0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
