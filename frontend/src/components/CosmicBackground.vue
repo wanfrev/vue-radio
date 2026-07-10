@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import bgUrl from '@/assets/background.png';
+import bgUrl from '@/assets/fondoconsola.png';
 </script>
 
 <template>
