@@ -11,7 +11,6 @@ const mobileOpen = ref(false);
 
 const navItems = [
   { to: '/admin/dashboard', label: 'Dashboard' },
-  { to: '/admin/estudio', label: 'Estudio' },
   { to: '/admin/donations', label: 'Donaciones' },
 ];
 

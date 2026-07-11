@@ -1,5 +1,6 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
+import multipart from '@fastify/multipart';
 import helmet from 'helmet';
 import rateLimit from '@fastify/rate-limit';
 import cookie from '@fastify/cookie';
@@ -11,6 +12,7 @@ import { donationsRoutes } from './routes/donations.js';
 import { authRoutes } from './routes/auth.js';
 import { adminDonationsRoutes } from './routes/admin/donations.js';
 import { adminLiveRoutes } from './routes/admin/live.js';
+import { adminMusicRoutes } from './routes/admin/music.js';
 import { registerAuthPlugin } from './plugins/auth.js';
 import { metadata } from './services/metadata.js';
 import { initDb, closeDb } from './db/index.js';
@@ -48,6 +50,8 @@ async function buildServer(): Promise<FastifyInstance> {
     secret: env.COOKIE_SECRET,
   });
 
+  await app.register(multipart);
+
   await app.register(registerAuthPlugin);
 
   await app.register(rateLimit, {
@@ -62,6 +66,7 @@ async function buildServer(): Promise<FastifyInstance> {
   await app.register(authRoutes, { prefix: '/api/auth' });
   await app.register(adminDonationsRoutes, { prefix: '/api/admin/donations' });
   await app.register(adminLiveRoutes, { prefix: '/api/admin/live' });
+  await app.register(adminMusicRoutes, { prefix: '/api/admin/music' });
 
   app.setErrorHandler((err, _req, reply) => {
     app.log.error({ err }, 'Unhandled error');

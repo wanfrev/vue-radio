@@ -18,6 +18,26 @@ export interface LiveStatus {
   streamerName: string | null;
 }
 
+export interface AzuracastFile {
+  id: number;
+  path: string;
+  name: string;
+  size: number;
+  mtime: number;
+  art: string | null;
+  custom_fields: string[];
+  links: Record<string, string>;
+}
+
+export interface AzuracastPlaylist {
+  id: number;
+  name: string;
+  short_name: string;
+  type: string;
+  is_enabled: boolean;
+  links: Record<string, string>;
+}
+
 export const azuracast = {
   ready: hasConfig,
 
@@ -94,5 +114,82 @@ export const azuracast = {
       password: env.AZURACAST_LIVE_DJ_PASSWORD!,
       fullUrl: `${base}${env.AZURACAST_LIVE_DJ_MOUNTPOINT}`,
     };
+  },
+
+  async listFiles(): Promise<AzuracastFile[]> {
+    if (!hasConfig) return [];
+    try {
+      const r = await client.get(`/station/${env.AZURACAST_STATION_ID}/files`);
+      return (r.data as AzuracastFile[]) ?? [];
+    } catch (err) {
+      console.warn('[azuracast] listFiles failed', (err as Error).message);
+      return [];
+    }
+  },
+
+  async uploadFile(filename: string, buffer: Buffer): Promise<AzuracastFile | null> {
+    if (!hasConfig) return null;
+    try {
+      const form = new FormData();
+      form.append('file', new Blob([buffer], { type: 'audio/mpeg' }), filename);
+      form.append('path', filename);
+      const r = await client.post(`/station/${env.AZURACAST_STATION_ID}/files`, form, {
+        timeout: 30000,
+      });
+      return (r.data as AzuracastFile) ?? null;
+    } catch (err) {
+      console.warn('[azuracast] uploadFile failed', (err as Error).message);
+      return null;
+    }
+  },
+
+  async deleteFile(id: number): Promise<boolean> {
+    if (!hasConfig) return false;
+    try {
+      await client.delete(`/station/${env.AZURACAST_STATION_ID}/file/${id}`);
+      return true;
+    } catch (err) {
+      console.warn('[azuracast] deleteFile failed', (err as Error).message);
+      return false;
+    }
+  },
+
+  async listPlaylists(): Promise<AzuracastPlaylist[]> {
+    if (!hasConfig) return [];
+    try {
+      const r = await client.get(`/station/${env.AZURACAST_STATION_ID}/playlists`);
+      return (r.data as AzuracastPlaylist[]) ?? [];
+    } catch (err) {
+      console.warn('[azuracast] listPlaylists failed', (err as Error).message);
+      return [];
+    }
+  },
+
+  async addToPlaylist(playlistId: number, mediaIds: number[]): Promise<boolean> {
+    if (!hasConfig) return false;
+    try {
+      await client.post(
+        `/station/${env.AZURACAST_STATION_ID}/playlist/${playlistId}/add`,
+        { media: mediaIds },
+      );
+      return true;
+    } catch (err) {
+      console.warn('[azuracast] addToPlaylist failed', (err as Error).message);
+      return false;
+    }
+  },
+
+  async removeFromPlaylist(playlistId: number, mediaIds: number[]): Promise<boolean> {
+    if (!hasConfig) return false;
+    try {
+      await client.post(
+        `/station/${env.AZURACAST_STATION_ID}/playlist/${playlistId}/remove`,
+        { media: mediaIds },
+      );
+      return true;
+    } catch (err) {
+      console.warn('[azuracast] removeFromPlaylist failed', (err as Error).message);
+      return false;
+    }
   },
 };

@@ -12,8 +12,6 @@ const routes: RouteRecordRaw[] = [
       { path: '', redirect: '/admin/dashboard' },
       { path: 'dashboard', name: 'admin-dashboard', component: () => import('@/views/admin/DashboardView.vue') },
       { path: 'donations', name: 'admin-donations', component: () => import('@/views/admin/DonationsView.vue') },
-      { path: 'estudio', name: 'admin-estudio', component: () => import('@/views/admin/LiveView.vue') },
-      { path: 'studio', redirect: '/admin/estudio' },
       { path: 'studio/guide', name: 'admin-studio-guide', component: () => import('@/views/admin/StudioGuide.vue') },
     ],
   },
