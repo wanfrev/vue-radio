@@ -9,10 +9,12 @@ const player = usePlayerStore();
 const np = useNowPlayingStore();
 const audioEl = ref<HTMLAudioElement | null>(null);
 const started = ref(false);
+const wasPausedByUser = ref(false);
 
 function play(): void {
   const a = audioEl.value;
   if (!a || !player.canPlay) return;
+  wasPausedByUser.value = false;
   a.play().then(() => {
     player.setPlaying(true);
   }).catch((e) => {
@@ -21,6 +23,7 @@ function play(): void {
 }
 
 function pause(): void {
+  wasPausedByUser.value = true;
   audioEl.value?.pause();
 }
 
@@ -29,6 +32,7 @@ function resumeLive(): void {
   if (!a || !player.canPlay) return;
   a.src = player.streamUrl;
   a.load();
+  wasPausedByUser.value = false;
   a.play().then(() => {
     player.setPlaying(true);
   }).catch((e) => {
@@ -38,47 +42,21 @@ function resumeLive(): void {
 
 function start(): void {
   player.setError(null);
+  const a = audioEl.value;
+  if (!a) return;
 
-  const a = document.createElement('audio');
-  a.setAttribute('playsinline', '');
-  a.setAttribute('preload', 'none');
-  a.setAttribute('autoplay', '');
-  a.volume = player.volume;
-  a.muted = player.muted;
+  if (!a.src || a.src !== player.streamUrl) {
+    a.src = player.streamUrl;
+    a.load();
+  }
 
-  a.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;';
-
-  a.addEventListener('play', () => player.setPlaying(true));
-  a.addEventListener('pause', () => player.setPlaying(false));
-  a.addEventListener('waiting', () => player.setBuffering(true));
-  a.addEventListener('playing', () => player.setBuffering(false));
-  a.addEventListener('canplay', () => player.setBuffering(false));
-  a.addEventListener('error', () => {
-    player.setPlaying(false);
-    player.setError('Error al reproducir');
-  });
-  a.addEventListener('suspend', () => {
-    console.warn('[HomeView] audio suspended');
-  });
-  a.addEventListener('ended', () => {
-    if (started.value) {
-      a.src = player.streamUrl;
-      a.load();
-      a.play().catch(() => {});
-    }
-  });
-
-  document.body.appendChild(a);
-  audioEl.value = a;
-  a.src = player.streamUrl;
-  a.load();
   started.value = true;
+  wasPausedByUser.value = false;
 
   a.play().then(() => {
     player.setPlaying(true);
   }).catch((e) => {
-    console.warn('[HomeView] initial play failed', e);
-    player.setPlaying(false);
+    console.warn('[HomeView] start play failed', e);
   });
 }
 
@@ -86,7 +64,7 @@ function togglePlay(): void {
   if (player.isPlaying) {
     pause();
   } else if (audioEl.value) {
-    if (audioEl.value.src && audioEl.value.src !== player.streamUrl) {
+    if (wasPausedByUser.value) {
       resumeLive();
     } else {
       play();
@@ -107,6 +85,18 @@ function updateMetadata(): void {
   });
 }
 
+function unlockAudioIOS(): void {
+  const a = audioEl.value;
+  if (!a) return;
+  a.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYkFh6AAAAAAAAAAAAAAAAAAAAA//tQZAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYsTwjTAAAAAAAAAAAAAAAAAAAAA';
+  a.play().then(() => {
+    a.pause();
+    a.currentTime = 0;
+    a.removeAttribute('src');
+    a.load();
+  }).catch(() => {});
+}
+
 onMounted(async () => {
   try {
     const info = await api.streamUrl();
@@ -114,6 +104,28 @@ onMounted(async () => {
   } catch (e) {
     player.setError('Stream no disponible');
     console.warn('[HomeView] stream-url failed', e);
+  }
+
+  if (audioEl.value) {
+    audioEl.value.volume = player.volume;
+    audioEl.value.muted = player.muted;
+
+    audioEl.value.addEventListener('play', () => player.setPlaying(true));
+    audioEl.value.addEventListener('pause', () => player.setPlaying(false));
+    audioEl.value.addEventListener('waiting', () => player.setBuffering(true));
+    audioEl.value.addEventListener('playing', () => player.setBuffering(false));
+    audioEl.value.addEventListener('canplay', () => player.setBuffering(false));
+    audioEl.value.addEventListener('error', () => {
+      player.setPlaying(false);
+      player.setError('Error al reproducir');
+    });
+    audioEl.value.addEventListener('ended', () => {
+      if (started.value && !wasPausedByUser.value) {
+        audioEl.value!.src = player.streamUrl;
+        audioEl.value!.load();
+        audioEl.value!.play().catch(() => {});
+      }
+    });
   }
 
   if ('mediaSession' in navigator) {
@@ -126,17 +138,21 @@ onMounted(async () => {
         && started.value
         && audioEl.value
         && audioEl.value.paused
+        && !wasPausedByUser.value
         && !player.error) {
       play();
     }
   });
+
+  window.addEventListener('touchstart', unlockAudioIOS, { once: true });
+  window.addEventListener('click', unlockAudioIOS, { once: true });
 });
 
 onBeforeUnmount(() => {
   if (audioEl.value) {
     audioEl.value.pause();
-    audioEl.value.remove();
-    audioEl.value = null;
+    audioEl.value.removeAttribute('src');
+    audioEl.value.load();
   }
 });
 
@@ -260,5 +276,13 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
         </button>
       </div>
     </div>
+
+    <audio
+      ref="audioEl"
+      playsinline
+      autoplay
+      preload="auto"
+      class="fixed top-0 left-0 w-px h-px opacity-[0.01] pointer-events-none"
+    />
   </section>
 </template>
