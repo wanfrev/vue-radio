@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, computed, ref, watch } from 'vue';
+import { onMounted, onBeforeUnmount, computed, ref, watch } from 'vue';
 import { api } from '@/services/api';
 import { usePlayerStore } from '@/stores/player';
 import { useNowPlayingStore } from '@/stores/nowPlaying';
@@ -9,13 +9,26 @@ const player = usePlayerStore();
 const np = useNowPlayingStore();
 const audio = ref<HTMLAudioElement | null>(null);
 const started = ref(false);
+const retryCount = ref(0);
+const handleInteraction = () => {
+  if (started.value && audio.value && !player.isPlaying && !player.error) {
+    play();
+  }
+};
 
 function play(): void {
   const a = audio.value;
   if (!a || !player.canPlay) return;
   a.play().then(() => {
     player.setPlaying(true);
-  }).catch(() => {});
+    retryCount.value = 0;
+  }).catch((e) => {
+    console.warn('[HomeView] play failed', e);
+    if (retryCount.value < 3) {
+      retryCount.value++;
+      setTimeout(play, 1000);
+    }
+  });
 }
 
 function pause(): void {
@@ -87,6 +100,9 @@ onMounted(async () => {
       player.setPlaying(false);
       player.setError('Error al reproducir el stream');
     });
+    a.addEventListener('suspend', () => {
+      console.warn('[HomeView] audio suspended (likely mobile)');
+    });
     a.preload = 'auto';
   }
 
@@ -94,6 +110,14 @@ onMounted(async () => {
     navigator.mediaSession.setActionHandler('play', () => play());
     navigator.mediaSession.setActionHandler('pause', () => pause());
   }
+
+  window.addEventListener('touchstart', handleInteraction, { passive: true });
+  window.addEventListener('click', handleInteraction);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('touchstart', handleInteraction);
+  window.removeEventListener('click', handleInteraction);
 });
 
 watch(() => player.volume, (v) => { if (audio.value) audio.value.volume = v; });
@@ -197,12 +221,13 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
           <button
             v-if="!player.isPlaying && started"
             type="button"
-            class="flex items-center justify-center h-10 w-10 rounded-full bg-emerald-600 text-white hover:scale-105 active:scale-95 transition-all shrink-0"
+            class="flex items-center gap-2 px-3 py-2 rounded-full bg-emerald-600 text-white hover:scale-105 active:scale-95 transition-all shrink-0"
             @click="resumeLive"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
               <path d="M5 3v18l14-9z" />
             </svg>
+            <span>Volver al en vivo</span>
           </button>
 
           <div class="flex-1 flex items-center gap-2">
@@ -236,8 +261,7 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
     <audio
       ref="audio"
       playsinline
-      autoplay
-      muted
+      preload="auto"
       style="display:none"
     />
   </section>
