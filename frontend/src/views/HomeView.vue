@@ -34,15 +34,17 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
             <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
           </svg>
         </button>
+
         <input
+          v-if="player.isPlaying"
           type="range" min="0" max="100" step="1"
           :value="volumePct"
           @input="player.setVolume(Number(($event.target as HTMLInputElement).value) / 100)"
           class="flex-1 h-1"
         />
-      </div>
 
-      <p v-if="player.error" class="text-xs text-amber-400 mt-4">⚠ {{ player.error }}</p>
+        <span v-else class="flex-1 h-6 rounded-full bg-slate-800 animate-pulse" />
+      </div>
     </div>
   </section>
 </template>
