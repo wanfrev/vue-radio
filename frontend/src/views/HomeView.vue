@@ -1,27 +1,90 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { onMounted, onBeforeUnmount, computed, ref, watch } from 'vue';
+import { api } from '@/services/api';
 import { usePlayerStore } from '@/stores/player';
 import { useNowPlayingStore } from '@/stores/nowPlaying';
 import logoUrl from '@/assets/airemediailuminado.png';
 
 const player = usePlayerStore();
 const np = useNowPlayingStore();
+const audio = ref<HTMLAudioElement | null>(null);
 const started = ref(false);
 
-const win = window as any;
+function play(): void {
+  const a = audio.value;
+  if (!a || !player.canPlay) return;
+  a.play().catch(() => {});
+}
+
+function pause(): void {
+  audio.value?.pause();
+}
 
 function start(): void {
   started.value = true;
-  win.__radioPlay?.();
+  play();
 }
 
 function togglePlay(): void {
   if (player.isPlaying) {
-    win.__radioPause?.();
+    pause();
   } else {
-    win.__radioPlay?.();
+    play();
   }
 }
+
+function updateMetadata(): void {
+  if (!('mediaSession' in navigator) || !np.current) return;
+  const artwork = np.current.art
+    ? [{ src: np.current.art, sizes: '512x512', type: 'image/jpeg' }]
+    : [];
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: np.current.title,
+    artist: np.current.artist,
+    album: np.current.album ?? '',
+    artwork,
+  });
+}
+
+onMounted(async () => {
+  try {
+    const info = await api.streamUrl();
+    player.setStream(info.url, info.name);
+    if (audio.value) {
+      audio.value.src = info.url;
+      audio.value.preload = 'none';
+    }
+  } catch (e) {
+    player.setError('Stream no disponible');
+    console.warn('[HomeView] stream-url failed', e);
+  }
+
+  const a = audio.value;
+  if (a) {
+    a.volume = player.volume;
+    a.muted = player.muted;
+    a.addEventListener('play', () => player.setPlaying(true));
+    a.addEventListener('pause', () => player.setPlaying(false));
+    a.addEventListener('waiting', () => player.setBuffering(true));
+    a.addEventListener('playing', () => player.setBuffering(false));
+    a.addEventListener('canplay', () => player.setBuffering(false));
+    a.addEventListener('error', () => player.setPlaying(false));
+  }
+
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', () => play());
+    navigator.mediaSession.setActionHandler('pause', () => pause());
+  }
+});
+
+watch(() => player.volume, (v) => { if (audio.value) audio.value.volume = v; });
+watch(() => player.muted, (m) => { if (audio.value) audio.value.muted = m; });
+watch(() => np.current, () => updateMetadata(), { deep: true });
+watch(() => player.isPlaying, (p) => {
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.playbackState = p ? 'playing' : 'paused';
+  }
+});
 
 const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 100));
 </script>
@@ -35,6 +98,7 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
         class="w-auto max-h-[55vh] max-w-[95vw] object-contain"
       />
 
+      <!-- Botón Escuchar en vivo -->
       <button
         v-if="!started"
         type="button"
@@ -116,5 +180,12 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
         </div>
       </div>
     </div>
+
+    <audio
+      ref="audio"
+      playsinline
+      preload="none"
+      style="display:none"
+    />
   </section>
 </template>
