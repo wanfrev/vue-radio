@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { usePlayerStore } from '@/stores/player';
 import logoUrl from '@/assets/airemediailuminado.png';
 
 const player = usePlayerStore();
+const started = ref(false);
+
+function start(): void {
+  started.value = true;
+}
 
 const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 100));
 </script>
@@ -17,13 +22,13 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
         class="w-auto max-h-[65vh] max-w-[95vw] object-contain"
       />
 
-      <!-- Botón Escuchar en vivo (desaparece cuando ya suena) -->
       <button
-        v-if="!player.isPlaying"
+        v-if="!started"
         type="button"
         :disabled="!player.canPlay"
         class="mt-8 px-10 py-4 rounded-full bg-slate-900 text-white text-lg font-bold shadow-lg hover:scale-105 active:scale-95 transition-all"
         :class="!player.canPlay ? 'opacity-50' : 'hover:bg-slate-800'"
+        @click="start"
       >
         <span v-if="!player.canPlay" class="inline-flex items-center gap-2">
           <span class="inline-block h-5 w-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
@@ -37,8 +42,7 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
         </span>
       </button>
 
-      <!-- Control de volumen (aparece solo cuando está sonando) -->
-      <div v-if="player.isPlaying" class="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-slate-900/80 border border-slate-800 w-48 mt-8 -translate-x-8">
+      <div v-if="started" class="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-slate-900/80 border border-slate-800 w-48 mt-8 -translate-x-8">
         <button type="button" class="text-slate-400 hover:text-white transition shrink-0" @click="player.setMuted(!player.muted)">
           <svg v-if="player.muted || volumePct === 0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
