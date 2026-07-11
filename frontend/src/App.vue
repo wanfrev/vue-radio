@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref, provide } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 import AudioCore from '@/components/AudioCore.vue';
 import DonateModal from '@/components/DonateModal.vue';
@@ -10,7 +10,10 @@ import { useUiStore } from '@/stores/ui';
 
 const route = useRoute();
 const ui = useUiStore();
+const audioRef = ref<InstanceType<typeof AudioCore> | null>(null);
 useNowPlaying();
+
+provide('audioPlay', () => audioRef.value?.play());
 
 const isAdmin = computed(() => route.path.startsWith('/admin'));
 
@@ -55,7 +58,7 @@ onMounted(() => {
 
     <RouterView v-else />
 
-    <AudioCore v-if="!isAdmin" />
+    <AudioCore v-if="!isAdmin" ref="audioRef" />
     <DonateModal v-if="!isAdmin" />
   </div>
 </template>
