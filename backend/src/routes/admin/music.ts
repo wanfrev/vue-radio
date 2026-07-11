@@ -7,7 +7,15 @@ export async function adminMusicRoutes(app: FastifyInstance): Promise<void> {
 
   app.get('/files', async () => {
     const files = await azuracast.listFiles();
-    return { files };
+    return {
+      files: files.map((f) => ({
+        id: f.id,
+        name: f.path.split('/').pop() || f.path,
+        path: f.path,
+        size: f.size,
+        mtime: f.mtime,
+      })),
+    };
   });
 
   app.post('/upload', async (req, reply) => {
