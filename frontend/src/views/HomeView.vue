@@ -18,16 +18,6 @@ function play(): void {
   }).catch(() => {});
 }
 
-function resumeLive(): void {
-  const a = audio.value;
-  if (!a || !player.canPlay) return;
-  a.src = '';
-  a.src = player.streamUrl + '?t=' + Date.now();
-  a.play().then(() => {
-    player.setPlaying(true);
-  }).catch(() => {});
-}
-
 function pause(): void {
   audio.value?.pause();
 }
@@ -41,7 +31,7 @@ function togglePlay(): void {
   if (player.isPlaying) {
     pause();
   } else {
-    resumeLive();
+    play();
   }
 }
 
