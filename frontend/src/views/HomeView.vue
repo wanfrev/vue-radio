@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, computed, ref, watch } from 'vue';
+import { onMounted, computed, ref, watch } from 'vue';
 import { api } from '@/services/api';
 import { usePlayerStore } from '@/stores/player';
 import { useNowPlayingStore } from '@/stores/nowPlaying';
@@ -13,6 +13,7 @@ const started = ref(false);
 function play(): void {
   const a = audio.value;
   if (!a || !player.canPlay) return;
+  a.load();
   a.play().catch(() => {});
 }
 
