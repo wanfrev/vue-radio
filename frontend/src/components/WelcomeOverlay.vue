@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { useWelcomeStore } from '@/stores/welcome';
 import { usePlayerStore } from '@/stores/player';
 import { usePWAInstall } from '@/composables/usePWAInstall';
-import logoUrl from '@/assets/airemediailuminado.svg';
+import logoUrl from '@/assets/airemediailuminado.png';
 
 const props = defineProps<{ onEnter: () => void }>();
 const welcome = useWelcomeStore();

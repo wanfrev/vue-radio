@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { usePlayerStore } from '@/stores/player';
-import logoUrl from '@/assets/airemediailuminado.svg';
+import logoUrl from '@/assets/airemediailuminado.png';
 
 const player = usePlayerStore();
 
@@ -14,7 +14,7 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
       <img
         :src="logoUrl"
         alt="AireMedia"
-        class="w-auto max-h-[75vh] max-w-[95vw] object-contain drop-shadow-[0_0_80px_rgba(34,211,238,0.7)]"
+        class="w-auto max-h-[75vh] max-w-[95vw] object-contain"
       />
 
       <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-slate-900/80 border border-slate-800 w-48 -mt-3 -translate-x-8">
