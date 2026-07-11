@@ -102,18 +102,25 @@ export const azuracast = {
   },
 
   liveDjCredentials(): {
+    host: string;
+    port: string;
     mountpoint: string;
     username: string;
     password: string;
     fullUrl: string;
   } | null {
     if (!hasConfig || !env.AZURACAST_LIVE_DJ_MOUNTPOINT) return null;
-    const base = env.AZURACAST_BASE_URL!.replace(/\/+$/, '');
+    const rawHost = env.AZURACAST_LIVE_DJ_HOST || env.AZURACAST_BASE_URL!.replace(/https?:\/\//, '').replace(/:.*/, '');
+    const parts = rawHost.includes(':') ? rawHost.split(':') : [rawHost, '8000'];
+    const host = parts[0]!;
+    const port = parts[1]!;
     return {
+      host,
+      port,
       mountpoint: env.AZURACAST_LIVE_DJ_MOUNTPOINT!,
       username: env.AZURACAST_LIVE_DJ_USERNAME || 'source',
-      password: env.AZURACAST_LIVE_DJ_PASSWORD!,
-      fullUrl: `${base}${env.AZURACAST_LIVE_DJ_MOUNTPOINT}`,
+      password: env.AZURACAST_LIVE_DJ_PASSWORD || '',
+      fullUrl: `${host}:${port}${env.AZURACAST_LIVE_DJ_MOUNTPOINT}`,
     };
   },
 

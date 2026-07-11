@@ -15,6 +15,8 @@ interface LiveState {
 }
 
 interface Credentials {
+  host: string;
+  port: string;
   mountpoint: string;
   username: string;
   password: string;
@@ -283,12 +285,12 @@ onBeforeUnmount(() => {
             <h2 class="font-semibold text-sm uppercase tracking-wider text-slate-500 mb-3">Conexión DJ</h2>
             <dl class="space-y-2 text-sm">
               <div class="flex items-center justify-between gap-2">
-                <dt class="text-slate-500 shrink-0">Mountpoint</dt>
-                <dd class="text-slate-200 font-mono truncate">{{ creds.mountpoint }}</dd>
+                <dt class="text-slate-500 shrink-0">Servidor</dt>
+                <dd class="text-slate-200 font-mono text-xs">{{ creds.host }}:{{ creds.port }}</dd>
               </div>
               <div class="flex items-center justify-between gap-2">
-                <dt class="text-slate-500 shrink-0">URL</dt>
-                <dd class="text-slate-200 font-mono text-xs truncate">{{ creds.fullUrl }}</dd>
+                <dt class="text-slate-500 shrink-0">Mountpoint</dt>
+                <dd class="text-slate-200 font-mono truncate">{{ creds.mountpoint }}</dd>
               </div>
               <div class="flex items-center justify-between gap-2">
                 <dt class="text-slate-500 shrink-0">Usuario</dt>
@@ -301,7 +303,7 @@ onBeforeUnmount(() => {
             </dl>
             <div class="flex gap-2 mt-3 flex-wrap">
               <button type="button" class="text-xs px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition" @click="lastCopied = 'pass'; copy(creds.password)">{{ copied && lastCopied === 'pass' ? 'Copiada' : 'Copiar pass' }}</button>
-              <button type="button" class="text-xs px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition" @click="lastCopied = 'url'; copy(creds.fullUrl)">{{ copied && lastCopied === 'url' ? 'Copiada' : 'Copiar URL' }}</button>
+              <button type="button" class="text-xs px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition" @click="lastCopied = 'url'; copy(creds.host + ':' + creds.port + creds.mountpoint)">{{ copied && lastCopied === 'url' ? 'Copiada' : 'Copiar URL' }}</button>
             </div>
           </div>
 

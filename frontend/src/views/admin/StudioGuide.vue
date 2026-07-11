@@ -3,6 +3,8 @@ import { onMounted, ref } from 'vue';
 import { useClipboard } from '@/composables/useClipboard';
 
 interface Credentials {
+  host: string;
+  port: string;
   mountpoint: string;
   username: string;
   password: string;
@@ -30,12 +32,11 @@ onMounted(async () => {
 
 function generateButtConf(): string {
   if (!creds.value) return '';
-  const url = new URL(creds.value.fullUrl);
   return [
     '[main]',
     'serverType=0',
-    `serverAddr=${url.hostname}`,
-    `serverPort=${url.port || '80'}`,
+    `serverAddr=${creds.value.host}`,
+    `serverPort=${creds.value.port}`,
     `password=${creds.value.password}`,
     `mountPoint=${creds.value.mountpoint}`,
     `serverUser=${creds.value.username}`,
@@ -146,11 +147,15 @@ function copyField(field: string, value: string) {
             <p class="font-medium text-slate-300 mb-1">Datos para configurar manual:</p>
             <div class="flex items-center justify-between gap-2">
               <span class="text-slate-500">Servidor:</span>
-              <span class="text-slate-200 font-mono text-xs">{{ creds.fullUrl.replace(/https?:\/\//, '').split('/')[0] }}</span>
+              <span class="text-slate-200 font-mono text-xs">{{ creds.host }}:{{ creds.port }}</span>
             </div>
             <div class="flex items-center justify-between gap-2">
               <span class="text-slate-500">Mountpoint:</span>
               <span class="text-slate-200 font-mono text-xs">{{ creds.mountpoint }}</span>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-slate-500">Usuario:</span>
+              <span class="text-slate-200 font-mono text-xs">{{ creds.username }}</span>
             </div>
             <div class="flex items-center justify-between gap-2">
               <span class="text-slate-500">Contraseña:</span>

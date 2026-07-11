@@ -40,6 +40,7 @@ const EnvSchema = z.object({
   AZURACAST_LIVE_DJ_MOUNTPOINT: z.string().optional().or(z.literal('').transform(() => undefined)),
   AZURACAST_LIVE_DJ_USERNAME: z.string().optional().or(z.literal('').transform(() => undefined)),
   AZURACAST_LIVE_DJ_PASSWORD: z.string().optional().or(z.literal('').transform(() => undefined)),
+  AZURACAST_LIVE_DJ_HOST: z.string().optional().or(z.literal('').transform(() => undefined)),
 });
 
 const parsed = EnvSchema.safeParse(process.env);
