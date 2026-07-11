@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, inject } from 'vue';
 import { usePlayerStore } from '@/stores/player';
 import logoUrl from '@/assets/airemediailuminado.png';
 
 const player = usePlayerStore();
 const started = ref(false);
+const playAudio = inject<() => void>('audioPlay', () => {});
 
 function start(): void {
   started.value = true;
+  playAudio();
 }
 
 const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 100));

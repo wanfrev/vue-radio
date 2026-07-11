@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
+import { onMounted, onBeforeUnmount, ref, watch, provide } from 'vue';
 import { api } from '@/services/api';
 import { usePlayerStore } from '@/stores/player';
 import { useNowPlayingStore } from '@/stores/nowPlaying';
@@ -92,6 +92,7 @@ watch(() => player.isPlaying, (p) => {
 });
 
 defineExpose({ play });
+provide('audioPlay', play);
 </script>
 
 <template>
