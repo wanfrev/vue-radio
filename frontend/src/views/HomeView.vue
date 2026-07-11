@@ -8,16 +8,18 @@ const player = usePlayerStore();
 const np = useNowPlayingStore();
 const started = ref(false);
 
+const win = window as any;
+
 function start(): void {
   started.value = true;
-  window.dispatchEvent(new CustomEvent('radio:play'));
+  win.__radioPlay?.();
 }
 
 function togglePlay(): void {
   if (player.isPlaying) {
-    window.dispatchEvent(new CustomEvent('radio:pause'));
+    win.__radioPause?.();
   } else {
-    window.dispatchEvent(new CustomEvent('radio:play'));
+    win.__radioPlay?.();
   }
 }
 

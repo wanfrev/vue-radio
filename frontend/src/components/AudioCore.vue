@@ -27,34 +27,6 @@ function onUserGesture(): void {
   play();
 }
 
-onMounted(async () => {
-  try {
-    const info = await api.streamUrl();
-    player.setStream(info.url, info.name);
-    if (audio.value) {
-      audio.value.src = info.url;
-      audio.value.preload = 'none';
-    }
-    document.addEventListener('click', onUserGesture);
-    document.addEventListener('touchend', onUserGesture);
-  } catch (e) {
-    player.setError('Stream no disponible');
-    console.warn('[AudioCore] stream-url failed', e);
-  }
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', onUserGesture);
-  document.removeEventListener('touchend', onUserGesture);
-  window.removeEventListener('radio:play', play);
-  window.removeEventListener('radio:pause', pause);
-});
-
-onMounted(() => {
-  window.addEventListener('radio:play', play);
-  window.addEventListener('radio:pause', pause);
-});
-
 function updateMetadata(): void {
   if (!('mediaSession' in navigator) || !np.current) return;
   const artwork = np.current.art
@@ -68,18 +40,50 @@ function updateMetadata(): void {
   });
 }
 
-onMounted(() => {
-  const a = audio.value;
-  if (!a) return;
-  a.volume = player.volume;
-  a.muted = player.muted;
+onMounted(async () => {
+  try {
+    const info = await api.streamUrl();
+    player.setStream(info.url, info.name);
+    if (audio.value) {
+      audio.value.src = info.url;
+      audio.value.preload = 'none';
+    }
+  } catch (e) {
+    player.setError('Stream no disponible');
+    console.warn('[AudioCore] stream-url failed', e);
+  }
 
-  a.addEventListener('play', () => player.setPlaying(true));
-  a.addEventListener('pause', () => player.setPlaying(false));
-  a.addEventListener('waiting', () => player.setBuffering(true));
-  a.addEventListener('playing', () => player.setBuffering(false));
-  a.addEventListener('canplay', () => player.setBuffering(false));
-  a.addEventListener('error', () => player.setPlaying(false));
+  const a = audio.value;
+  if (a) {
+    a.volume = player.volume;
+    a.muted = player.muted;
+
+    a.addEventListener('play', () => player.setPlaying(true));
+    a.addEventListener('pause', () => player.setPlaying(false));
+    a.addEventListener('waiting', () => player.setBuffering(true));
+    a.addEventListener('playing', () => player.setBuffering(false));
+    a.addEventListener('canplay', () => player.setBuffering(false));
+    a.addEventListener('error', () => player.setPlaying(false));
+  }
+
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', () => play());
+    navigator.mediaSession.setActionHandler('pause', () => { if (audio.value) audio.value.pause(); });
+    navigator.mediaSession.setActionHandler('seekbackward', null);
+    navigator.mediaSession.setActionHandler('seekforward', null);
+  }
+
+  document.addEventListener('click', onUserGesture);
+  document.addEventListener('touchend', onUserGesture);
+  (window as any).__radioPlay = play;
+  (window as any).__radioPause = pause;
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onUserGesture);
+  document.removeEventListener('touchend', onUserGesture);
+  delete (window as any).__radioPlay;
+  delete (window as any).__radioPause;
 });
 
 watch(() => player.volume, (v) => { if (audio.value) audio.value.volume = v; });
