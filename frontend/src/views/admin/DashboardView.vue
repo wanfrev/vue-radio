@@ -4,7 +4,6 @@ import { RouterLink } from 'vue-router';
 import { useNowPlayingStore } from '@/stores/nowPlaying';
 import { usePlayerStore } from '@/stores/player';
 import { useClipboard } from '@/composables/useClipboard';
-import CoverArt from '@/components/CoverArt.vue';
 import LiveStatusBadge from '@/components/admin/LiveStatusBadge.vue';
 
 interface LiveState {
@@ -235,8 +234,7 @@ onBeforeUnmount(() => {
 
       <div class="grid lg:grid-cols-3 gap-6 mb-6">
         <div class="lg:col-span-2 space-y-6">
-          <div v-if="np.current" class="card flex items-center gap-4">
-            <CoverArt :src="np.current.art" :alt="np.current.title" size="lg" />
+          <div v-if="np.current" class="card">
             <div class="min-w-0">
               <div class="text-xs uppercase tracking-wider text-slate-500 mb-1">Sonando ahora</div>
               <div class="text-lg font-bold truncate">{{ np.current.title }}</div>

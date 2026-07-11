@@ -206,12 +206,6 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
 
       <div v-if="started" class="mt-8 w-80 max-w-[calc(100vw-2rem)] rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-800 shadow-2xl p-4 -translate-x-8">
         <div class="flex items-center gap-3 mb-3">
-          <div class="h-10 w-10 rounded-lg bg-slate-800 shrink-0 flex items-center justify-center overflow-hidden">
-            <img v-if="np.current?.art" :src="np.current.art" alt="" class="h-full w-full object-cover" />
-            <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 text-slate-600">
-              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-            </svg>
-          </div>
           <div class="min-w-0 flex-1">
             <div class="text-sm font-semibold truncate text-white">{{ np.current?.title || 'Aire Media' }}</div>
             <div class="text-xs text-slate-400 truncate">{{ np.current?.artist || 'En vivo' }}</div>

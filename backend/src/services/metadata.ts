@@ -1,7 +1,6 @@
 import { EventEmitter } from 'node:events';
 import { env } from '../config/env.js';
 import { autodj } from './autodj.js';
-import { coverArt } from './coverArt.js';
 import { liveState } from './liveState.js';
 import { type NowPlaying, type HistoryItem } from '../schemas/autodj.js';
 
@@ -55,13 +54,7 @@ class MetadataService extends EventEmitter {
 
   private async tick(): Promise<void> {
     const raw = await autodj.fetchNowPlaying();
-    const art = await coverArt.resolve({
-      artist: raw.artist,
-      title: raw.title,
-      providedUrl: raw.art,
-    });
 
-    // Enrich with live status from Azuracast (if available)
     let isLive = raw.isLive;
     let liveStreamerName: string | null = null;
     if (liveState.isAvailable) {
@@ -70,7 +63,7 @@ class MetadataService extends EventEmitter {
       liveStreamerName = status.streamerName;
     }
 
-    const next: NowPlaying = { ...raw, art, isLive, liveStreamerName };
+    const next: NowPlaying = { ...raw, art: null, isLive, liveStreamerName };
     const songKey = this.songKey(next);
     const liveKey = `${next.isLive}::${next.liveStreamerName ?? ''}`;
 
