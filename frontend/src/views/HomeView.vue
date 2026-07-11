@@ -10,11 +10,39 @@ const np = useNowPlayingStore();
 const audio = ref<HTMLAudioElement | null>(null);
 const started = ref(false);
 const retryCount = ref(0);
-const handleInteraction = () => {
-  if (started.value && audio.value && !player.isPlaying && !player.error) {
-    play();
-  }
-};
+
+function createAudio(src: string): HTMLAudioElement {
+  const a = new Audio();
+  a.volume = player.volume;
+  a.muted = player.muted;
+  a.preload = 'auto';
+  a.setAttribute('playsinline', '');
+  a.crossOrigin = 'anonymous';
+
+  a.addEventListener('play', () => player.setPlaying(true));
+  a.addEventListener('pause', () => player.setPlaying(false));
+  a.addEventListener('waiting', () => player.setBuffering(true));
+  a.addEventListener('playing', () => player.setBuffering(false));
+  a.addEventListener('canplay', () => player.setBuffering(false));
+  a.addEventListener('error', () => {
+    player.setPlaying(false);
+    player.setError('Error al reproducir el stream');
+  });
+  a.addEventListener('suspend', () => {
+    console.warn('[HomeView] audio suspended');
+  });
+  a.addEventListener('ended', () => {
+    console.warn('[HomeView] audio ended, reconnecting');
+    if (started.value) {
+      a.src = player.streamUrl;
+      a.load();
+      a.play().catch(() => {});
+    }
+  });
+
+  a.src = src;
+  return a;
+}
 
 function play(): void {
   const a = audio.value;
@@ -50,6 +78,12 @@ function resumeLive(): void {
 }
 
 function start(): void {
+  if (audio.value) {
+    audio.value.remove();
+    audio.value = null;
+  }
+  const a = createAudio(player.streamUrl);
+  audio.value = a;
   started.value = true;
   play();
 }
@@ -79,31 +113,9 @@ onMounted(async () => {
   try {
     const info = await api.streamUrl();
     player.setStream(info.url, info.name);
-      if (audio.value) {
-        audio.value.src = info.url;
-      }
   } catch (e) {
     player.setError('Stream no disponible');
     console.warn('[HomeView] stream-url failed', e);
-  }
-
-  const a = audio.value;
-  if (a) {
-    a.volume = player.volume;
-    a.muted = player.muted;
-    a.addEventListener('play', () => player.setPlaying(true));
-    a.addEventListener('pause', () => player.setPlaying(false));
-    a.addEventListener('waiting', () => player.setBuffering(true));
-    a.addEventListener('playing', () => player.setBuffering(false));
-    a.addEventListener('canplay', () => player.setBuffering(false));
-    a.addEventListener('error', () => {
-      player.setPlaying(false);
-      player.setError('Error al reproducir el stream');
-    });
-    a.addEventListener('suspend', () => {
-      console.warn('[HomeView] audio suspended (likely mobile)');
-    });
-    a.preload = 'auto';
   }
 
   if ('mediaSession' in navigator) {
@@ -111,13 +123,23 @@ onMounted(async () => {
     navigator.mediaSession.setActionHandler('pause', () => pause());
   }
 
-  window.addEventListener('touchstart', handleInteraction, { passive: true });
-  window.addEventListener('click', handleInteraction);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible'
+        && started.value
+        && audio.value
+        && audio.value.paused
+        && !player.error) {
+      play();
+    }
+  });
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('touchstart', handleInteraction);
-  window.removeEventListener('click', handleInteraction);
+  if (audio.value) {
+    audio.value.pause();
+    audio.value.remove();
+    audio.value = null;
+  }
 });
 
 watch(() => player.volume, (v) => { if (audio.value) audio.value.volume = v; });
@@ -137,17 +159,9 @@ watch(() => player.error, (e) => {
 });
 
 watch(() => player.streamUrl, (newUrl) => {
-  if (audio.value && newUrl) {
-    if (started.value) {
-      audio.value.src = newUrl;
-      audio.value.load();
-    }
-  }
-});
-
-watch(() => started, (startedVal) => {
-  if (startedVal && audio.value && player.streamUrl) {
-    audio.value.src = player.streamUrl;
+  if (audio.value && started.value && newUrl) {
+    audio.value.src = newUrl;
+    audio.value.load();
   }
 });
 
@@ -163,7 +177,6 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
         class="w-auto max-h-[55vh] max-w-[95vw] object-contain"
       />
 
-      <!-- Botón Escuchar en vivo -->
       <button
         v-if="!started"
         type="button"
@@ -184,8 +197,7 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
         </span>
       </button>
 
-      <!-- Reproductor -->
-      <div v-if="started" class="mt-8 w-72 rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-800 shadow-2xl p-4 -translate-x-8">
+      <div v-if="started" class="mt-8 w-80 max-w-[calc(100vw-2rem)] rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-800 shadow-2xl p-4 -translate-x-8">
         <div class="flex items-center gap-3 mb-3">
           <div class="h-10 w-10 rounded-lg bg-slate-800 shrink-0 flex items-center justify-center overflow-hidden">
             <img v-if="np.current?.art" :src="np.current.art" alt="" class="h-full w-full object-cover" />
@@ -204,7 +216,7 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 mb-2">
           <button
             type="button"
             class="flex items-center justify-center h-10 w-10 rounded-full bg-white text-slate-900 hover:scale-105 active:scale-95 transition-all shrink-0"
@@ -216,18 +228,6 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
             <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
               <path d="M8 5v14l11-7z" />
             </svg>
-          </button>
-
-          <button
-            v-if="!player.isPlaying && started"
-            type="button"
-            class="flex items-center gap-2 px-3 py-2 rounded-full bg-emerald-600 text-white hover:scale-105 active:scale-95 transition-all shrink-0"
-            @click="resumeLive"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
-              <path d="M5 3v18l14-9z" />
-            </svg>
-            <span>Volver al en vivo</span>
           </button>
 
           <div class="flex-1 flex items-center gap-2">
@@ -255,14 +255,19 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
             />
           </div>
         </div>
+
+        <button
+          v-if="!player.isPlaying && started"
+          type="button"
+          class="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-500 active:scale-95 transition-all"
+          @click="resumeLive"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+            <path d="M5 3v18l14-9z" />
+          </svg>
+          Volver al en vivo
+        </button>
       </div>
     </div>
-
-    <audio
-      ref="audio"
-      playsinline
-      preload="auto"
-      style="display:none"
-    />
   </section>
 </template>
