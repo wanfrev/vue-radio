@@ -13,10 +13,19 @@ const started = ref(false);
 function play(): void {
   const a = audio.value;
   if (!a || !player.canPlay) return;
-  if (a.readyState > 0) {
-    a.src = player.streamUrl + '?t=' + Date.now();
-  }
-  a.play().catch(() => {});
+  a.play().then(() => {
+    player.setPlaying(true);
+  }).catch(() => {});
+}
+
+function resumeLive(): void {
+  const a = audio.value;
+  if (!a || !player.canPlay) return;
+  a.src = '';
+  a.src = player.streamUrl + '?t=' + Date.now();
+  a.play().then(() => {
+    player.setPlaying(true);
+  }).catch(() => {});
 }
 
 function pause(): void {
@@ -32,7 +41,7 @@ function togglePlay(): void {
   if (player.isPlaying) {
     pause();
   } else {
-    play();
+    resumeLive();
   }
 }
 
@@ -53,10 +62,9 @@ onMounted(async () => {
   try {
     const info = await api.streamUrl();
     player.setStream(info.url, info.name);
-    if (audio.value) {
-      audio.value.src = info.url;
-      audio.value.preload = 'none';
-    }
+      if (audio.value) {
+        audio.value.src = info.url;
+      }
   } catch (e) {
     player.setError('Stream no disponible');
     console.warn('[HomeView] stream-url failed', e);
@@ -187,7 +195,6 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
     <audio
       ref="audio"
       playsinline
-      preload="none"
       style="display:none"
     />
   </section>
