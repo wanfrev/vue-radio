@@ -1,4 +1,5 @@
 import axios from 'axios';
+import FormData from 'form-data';
 import { env } from '../config/env.js';
 
 const hasConfig = !!env.AZURACAST_BASE_URL && !!env.AZURACAST_API_KEY;
@@ -131,9 +132,10 @@ export const azuracast = {
     if (!hasConfig) return null;
     try {
       const form = new FormData();
-      form.append('file', new Blob([buffer], { type: 'audio/mpeg' }), filename);
+      form.append('file', buffer, { filename, contentType: 'audio/mpeg' });
       form.append('path', filename);
       const r = await client.post(`/station/${env.AZURACAST_STATION_ID}/files`, form, {
+        headers: form.getHeaders(),
         timeout: 30000,
       });
       return (r.data as AzuracastFile) ?? null;
