@@ -2,14 +2,16 @@
 import { onMounted, computed } from 'vue';
 import { RouterView, useRoute } from 'vue-router';
 import AudioCore from '@/components/AudioCore.vue';
-
+import WelcomeOverlay from '@/components/WelcomeOverlay.vue';
 import DonateModal from '@/components/DonateModal.vue';
 import CosmicBackground from '@/components/CosmicBackground.vue';
 import { useNowPlaying } from '@/composables/useNowPlaying';
 import { useDonationsStore } from '@/stores/donations';
+import { usePlayerStore } from '@/stores/player';
 import { useUiStore } from '@/stores/ui';
 
 const route = useRoute();
+const player = usePlayerStore();
 const ui = useUiStore();
 useNowPlaying();
 
@@ -20,12 +22,16 @@ const donations = useDonationsStore();
 onMounted(() => {
   void donations.fetch();
 });
+
+function onPlay(): void { player.requestPlay(); }
 </script>
 
 <template>
   <CosmicBackground v-if="!isAdmin" />
 
   <div class="min-h-screen flex flex-col text-slate-100 relative">
+    <WelcomeOverlay v-if="!isAdmin" :on-enter="onPlay" />
+
     <div v-if="!isAdmin" class="fixed top-0 inset-x-0 z-30 flex items-center justify-end gap-3 px-4 py-3">
       <a
         href="https://whatsapp.com/channel/0029Vb8qgaeFnSzDE2tApn0J"

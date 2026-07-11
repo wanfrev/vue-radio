@@ -17,12 +17,21 @@ function tryPlay(): void {
       player.setPlaying(true);
       player.error = null;
       showPlayBtn.value = false;
+      document.removeEventListener('click', onUserGesture);
+      document.removeEventListener('touchend', onUserGesture);
     }).catch(() => {
       player.setPlaying(false);
       showPlayBtn.value = true;
     });
   }
 }
+
+let lastToken = 0;
+watch(() => player.actionToken, (token) => {
+  if (token === lastToken) return;
+  lastToken = token;
+  tryPlay();
+});
 
 function onUserGesture(): void {
   tryPlay();
