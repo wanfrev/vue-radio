@@ -13,7 +13,9 @@ const started = ref(false);
 function play(): void {
   const a = audio.value;
   if (!a || !player.canPlay) return;
-  a.load();
+  if (a.readyState > 0) {
+    a.src = player.streamUrl + '?t=' + Date.now();
+  }
   a.play().catch(() => {});
 }
 
