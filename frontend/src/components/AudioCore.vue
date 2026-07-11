@@ -5,24 +5,31 @@ import { usePlayerStore } from '@/stores/player';
 import { useNowPlayingStore } from '@/stores/nowPlaying';
 
 const audio = ref<HTMLAudioElement | null>(null);
+const showPlayBtn = ref(false);
 const player = usePlayerStore();
 const np = useNowPlayingStore();
 
 function tryPlay(): void {
   if (!audio.value || !player.canPlay) return;
-  if (audio.value.paused) {
-    audio.value.play().then(() => {
+  const a = audio.value;
+  if (a.paused) {
+    a.play().then(() => {
       player.setPlaying(true);
       player.error = null;
-      document.removeEventListener('click', onDocumentClick);
+      showPlayBtn.value = false;
     }).catch(() => {
       player.setPlaying(false);
+      showPlayBtn.value = true;
     });
   }
 }
 
-function onDocumentClick(): void {
+function onUserGesture(): void {
   tryPlay();
+  if (!showPlayBtn.value) {
+    document.removeEventListener('click', onUserGesture);
+    document.removeEventListener('touchend', onUserGesture);
+  }
 }
 
 onMounted(async () => {
@@ -34,16 +41,17 @@ onMounted(async () => {
       audio.value.preload = 'none';
     }
     tryPlay();
-    document.addEventListener('click', onDocumentClick);
+    document.addEventListener('click', onUserGesture);
+    document.addEventListener('touchend', onUserGesture);
   } catch (e) {
     player.setError('Stream no disponible');
-    player.setStream('#no-stream', player.stationName || 'Radio');
     console.warn('[AudioCore] stream-url failed', e);
   }
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', onDocumentClick);
+  document.removeEventListener('click', onUserGesture);
+  document.removeEventListener('touchend', onUserGesture);
 });
 
 function updateMetadata(): void {
@@ -65,14 +73,19 @@ onMounted(() => {
   a.volume = player.volume;
   a.muted = player.muted;
 
-  a.addEventListener('play', () => player.setPlaying(true));
+  a.addEventListener('play', () => { player.setPlaying(true); showPlayBtn.value = false; });
   a.addEventListener('pause', () => player.setPlaying(false));
   a.addEventListener('waiting', () => player.setBuffering(true));
   a.addEventListener('playing', () => player.setBuffering(false));
   a.addEventListener('canplay', () => player.setBuffering(false));
-  a.addEventListener('error', () => {
-    player.setPlaying(false);
-  });
+  a.addEventListener('error', () => player.setPlaying(false));
+
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', () => tryPlay());
+    navigator.mediaSession.setActionHandler('pause', () => { if (audio.value) { audio.value.pause(); } });
+    navigator.mediaSession.setActionHandler('seekbackward', null);
+    navigator.mediaSession.setActionHandler('seekforward', null);
+  }
 });
 
 watch(() => player.volume, (v) => { if (audio.value) audio.value.volume = v; });
@@ -92,4 +105,16 @@ watch(() => player.isPlaying, (p) => {
     playsinline
     preload="none"
   />
+
+  <button
+    v-if="showPlayBtn && player.canPlay"
+    type="button"
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium shadow-lg hover:bg-white/20 active:scale-95 transition-all"
+    @click="tryPlay"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+      <path d="M8 5v14l11-7z" />
+    </svg>
+    Toca para escuchar
+  </button>
 </template>
