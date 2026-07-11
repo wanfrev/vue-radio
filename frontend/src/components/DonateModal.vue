@@ -53,7 +53,7 @@ onBeforeUnmount(() => {
           </div>
 
           <p class="text-xs text-slate-400 mb-3">
-            Si te gusta lo que escuchas, invítame un café para mantener la radio al aire.
+            Si te gusta lo que escuchas, invítame un café para mantener la energía.
           </p>
 
           <div class="space-y-2">
