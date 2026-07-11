@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, inject } from 'vue';
+import { computed, ref } from 'vue';
 import { usePlayerStore } from '@/stores/player';
 import { useNowPlayingStore } from '@/stores/nowPlaying';
 import logoUrl from '@/assets/airemediailuminado.png';
@@ -7,15 +7,18 @@ import logoUrl from '@/assets/airemediailuminado.png';
 const player = usePlayerStore();
 const np = useNowPlayingStore();
 const started = ref(false);
-const playAudio = inject<() => void>('audioPlay', () => {});
 
 function start(): void {
   started.value = true;
-  playAudio();
+  window.dispatchEvent(new CustomEvent('radio:play'));
 }
 
 function togglePlay(): void {
-  playAudio();
+  if (player.isPlaying) {
+    window.dispatchEvent(new CustomEvent('radio:pause'));
+  } else {
+    window.dispatchEvent(new CustomEvent('radio:play'));
+  }
 }
 
 const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 100));

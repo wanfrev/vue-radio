@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, watch, provide } from 'vue';
+import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import { api } from '@/services/api';
 import { usePlayerStore } from '@/stores/player';
 import { useNowPlayingStore } from '@/stores/nowPlaying';
@@ -18,12 +18,13 @@ function play(): void {
   });
 }
 
+function pause(): void {
+  if (!audio.value) return;
+  audio.value.pause();
+}
+
 function onUserGesture(): void {
   play();
-  if (!audio.value?.paused) {
-    document.removeEventListener('click', onUserGesture);
-    document.removeEventListener('touchend', onUserGesture);
-  }
 }
 
 onMounted(async () => {
@@ -34,7 +35,6 @@ onMounted(async () => {
       audio.value.src = info.url;
       audio.value.preload = 'none';
     }
-    play();
     document.addEventListener('click', onUserGesture);
     document.addEventListener('touchend', onUserGesture);
   } catch (e) {
@@ -46,6 +46,13 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   document.removeEventListener('click', onUserGesture);
   document.removeEventListener('touchend', onUserGesture);
+  window.removeEventListener('radio:play', play);
+  window.removeEventListener('radio:pause', pause);
+});
+
+onMounted(() => {
+  window.addEventListener('radio:play', play);
+  window.addEventListener('radio:pause', pause);
 });
 
 function updateMetadata(): void {
@@ -73,13 +80,6 @@ onMounted(() => {
   a.addEventListener('playing', () => player.setBuffering(false));
   a.addEventListener('canplay', () => player.setBuffering(false));
   a.addEventListener('error', () => player.setPlaying(false));
-
-  if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('play', () => play());
-    navigator.mediaSession.setActionHandler('pause', () => { if (audio.value) audio.value.pause(); });
-    navigator.mediaSession.setActionHandler('seekbackward', null);
-    navigator.mediaSession.setActionHandler('seekforward', null);
-  }
 });
 
 watch(() => player.volume, (v) => { if (audio.value) audio.value.volume = v; });
@@ -90,9 +90,6 @@ watch(() => player.isPlaying, (p) => {
     navigator.mediaSession.playbackState = p ? 'playing' : 'paused';
   }
 });
-
-defineExpose({ play });
-provide('audioPlay', play);
 </script>
 
 <template>
