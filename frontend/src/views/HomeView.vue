@@ -7,17 +7,46 @@ import logoUrl from '@/assets/airemediailuminado.png';
 
 const player = usePlayerStore();
 const np = useNowPlayingStore();
-const audio = ref<HTMLAudioElement | null>(null);
+const audioEl = ref<HTMLAudioElement | null>(null);
 const started = ref(false);
-const retryCount = ref(0);
 
-function createAudio(src: string): HTMLAudioElement {
-  const a = new Audio();
+function play(): void {
+  const a = audioEl.value;
+  if (!a || !player.canPlay) return;
+  a.play().then(() => {
+    player.setPlaying(true);
+  }).catch((e) => {
+    console.warn('[HomeView] play failed', e);
+  });
+}
+
+function pause(): void {
+  audioEl.value?.pause();
+}
+
+function resumeLive(): void {
+  const a = audioEl.value;
+  if (!a || !player.canPlay) return;
+  a.src = player.streamUrl;
+  a.load();
+  a.play().then(() => {
+    player.setPlaying(true);
+  }).catch((e) => {
+    console.warn('[HomeView] resumeLive failed', e);
+  });
+}
+
+function start(): void {
+  player.setError(null);
+
+  const a = document.createElement('audio');
+  a.setAttribute('playsinline', '');
+  a.setAttribute('preload', 'none');
+  a.setAttribute('autoplay', '');
   a.volume = player.volume;
   a.muted = player.muted;
-  a.preload = 'auto';
-  a.setAttribute('playsinline', '');
-  a.crossOrigin = 'anonymous';
+
+  a.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;';
 
   a.addEventListener('play', () => player.setPlaying(true));
   a.addEventListener('pause', () => player.setPlaying(false));
@@ -26,13 +55,12 @@ function createAudio(src: string): HTMLAudioElement {
   a.addEventListener('canplay', () => player.setBuffering(false));
   a.addEventListener('error', () => {
     player.setPlaying(false);
-    player.setError('Error al reproducir el stream');
+    player.setError('Error al reproducir');
   });
   a.addEventListener('suspend', () => {
     console.warn('[HomeView] audio suspended');
   });
   a.addEventListener('ended', () => {
-    console.warn('[HomeView] audio ended, reconnecting');
     if (started.value) {
       a.src = player.streamUrl;
       a.load();
@@ -40,59 +68,29 @@ function createAudio(src: string): HTMLAudioElement {
     }
   });
 
-  a.src = src;
-  return a;
-}
+  document.body.appendChild(a);
+  audioEl.value = a;
+  a.src = player.streamUrl;
+  a.load();
+  started.value = true;
 
-function play(): void {
-  const a = audio.value;
-  if (!a || !player.canPlay) return;
   a.play().then(() => {
     player.setPlaying(true);
-    retryCount.value = 0;
   }).catch((e) => {
-    console.warn('[HomeView] play failed', e);
-    if (retryCount.value < 3) {
-      retryCount.value++;
-      setTimeout(play, 1000);
-    }
+    console.warn('[HomeView] initial play failed', e);
+    player.setPlaying(false);
   });
-}
-
-function pause(): void {
-  audio.value?.pause();
-}
-
-function resumeLive(): void {
-  const a = audio.value;
-  if (!a || !player.canPlay) return;
-  a.pause();
-  a.currentTime = 0;
-  setTimeout(() => {
-    a.src = player.streamUrl;
-    a.load();
-    a.play().then(() => {
-      player.setPlaying(true);
-    }).catch(() => {});
-  }, 100);
-}
-
-function start(): void {
-  if (audio.value) {
-    audio.value.remove();
-    audio.value = null;
-  }
-  const a = createAudio(player.streamUrl);
-  audio.value = a;
-  started.value = true;
-  play();
 }
 
 function togglePlay(): void {
   if (player.isPlaying) {
     pause();
-  } else {
-    play();
+  } else if (audioEl.value) {
+    if (audioEl.value.src && audioEl.value.src !== player.streamUrl) {
+      resumeLive();
+    } else {
+      play();
+    }
   }
 }
 
@@ -126,8 +124,8 @@ onMounted(async () => {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible'
         && started.value
-        && audio.value
-        && audio.value.paused
+        && audioEl.value
+        && audioEl.value.paused
         && !player.error) {
       play();
     }
@@ -135,15 +133,15 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  if (audio.value) {
-    audio.value.pause();
-    audio.value.remove();
-    audio.value = null;
+  if (audioEl.value) {
+    audioEl.value.pause();
+    audioEl.value.remove();
+    audioEl.value = null;
   }
 });
 
-watch(() => player.volume, (v) => { if (audio.value) audio.value.volume = v; });
-watch(() => player.muted, (m) => { if (audio.value) audio.value.muted = m; });
+watch(() => player.volume, (v) => { if (audioEl.value) audioEl.value.volume = v; });
+watch(() => player.muted, (m) => { if (audioEl.value) audioEl.value.muted = m; });
 watch(() => np.current, () => updateMetadata(), { deep: true });
 watch(() => player.isPlaying, (p) => {
   if ('mediaSession' in navigator) {
@@ -152,16 +150,9 @@ watch(() => player.isPlaying, (p) => {
 });
 
 watch(() => player.error, (e) => {
-  if (e && audio.value) {
-    audio.value.pause();
+  if (e && audioEl.value) {
+    audioEl.value.pause();
     player.setPlaying(false);
-  }
-});
-
-watch(() => player.streamUrl, (newUrl) => {
-  if (audio.value && started.value && newUrl) {
-    audio.value.src = newUrl;
-    audio.value.load();
   }
 });
 
