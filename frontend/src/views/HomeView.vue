@@ -22,6 +22,20 @@ function pause(): void {
   audio.value?.pause();
 }
 
+function resumeLive(): void {
+  const a = audio.value;
+  if (!a || !player.canPlay) return;
+  a.pause();
+  a.currentTime = 0;
+  setTimeout(() => {
+    a.src = player.streamUrl;
+    a.load();
+    a.play().then(() => {
+      player.setPlaying(true);
+    }).catch(() => {});
+  }, 100);
+}
+
 function start(): void {
   started.value = true;
   play();
@@ -69,7 +83,11 @@ onMounted(async () => {
     a.addEventListener('waiting', () => player.setBuffering(true));
     a.addEventListener('playing', () => player.setBuffering(false));
     a.addEventListener('canplay', () => player.setBuffering(false));
-    a.addEventListener('error', () => player.setPlaying(false));
+    a.addEventListener('error', () => {
+      player.setPlaying(false);
+      player.setError('Error al reproducir el stream');
+    });
+    a.preload = 'auto';
   }
 
   if ('mediaSession' in navigator) {
@@ -84,6 +102,28 @@ watch(() => np.current, () => updateMetadata(), { deep: true });
 watch(() => player.isPlaying, (p) => {
   if ('mediaSession' in navigator) {
     navigator.mediaSession.playbackState = p ? 'playing' : 'paused';
+  }
+});
+
+watch(() => player.error, (e) => {
+  if (e && audio.value) {
+    audio.value.pause();
+    player.setPlaying(false);
+  }
+});
+
+watch(() => player.streamUrl, (newUrl) => {
+  if (audio.value && newUrl) {
+    if (started.value) {
+      audio.value.src = newUrl;
+      audio.value.load();
+    }
+  }
+});
+
+watch(() => started, (startedVal) => {
+  if (startedVal && audio.value && player.streamUrl) {
+    audio.value.src = player.streamUrl;
   }
 });
 
@@ -154,6 +194,17 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
             </svg>
           </button>
 
+          <button
+            v-if="!player.isPlaying && started"
+            type="button"
+            class="flex items-center justify-center h-10 w-10 rounded-full bg-emerald-600 text-white hover:scale-105 active:scale-95 transition-all shrink-0"
+            @click="resumeLive"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+              <path d="M5 3v18l14-9z" />
+            </svg>
+          </button>
+
           <div class="flex-1 flex items-center gap-2">
             <button type="button" class="text-slate-400 hover:text-white transition shrink-0" @click="player.setMuted(!player.muted)">
               <svg v-if="player.muted || volumePct === 0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
@@ -185,6 +236,8 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
     <audio
       ref="audio"
       playsinline
+      autoplay
+      muted
       style="display:none"
     />
   </section>

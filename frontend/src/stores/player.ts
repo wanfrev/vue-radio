@@ -35,6 +35,11 @@ export const usePlayerStore = defineStore('player', {
       this.actionToken = Date.now();
     },
 
+    refreshStream(): void {
+      this.actionToken = Date.now();
+      this.error = null;
+    },
+
     setVolume(v: number): void {
       this.volume = Math.max(0, Math.min(1, v));
       if (this.volume > 0) this.muted = false;
