@@ -177,18 +177,18 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
 
 <template>
   <section class="flex flex-col items-start justify-center min-h-[100dvh] px-4 pt-14 pb-8">
-    <div class="flex flex-col items-center ml-4">
+    <div class="flex flex-col items-center ml-12">
       <img
         :src="logoUrl"
         alt="AireMedia"
-        class="w-auto max-h-[55vh] max-w-[95vw] object-contain"
+        class="w-auto max-h-[75vh] max-w-[95vw] object-contain"
       />
 
       <button
         v-if="!started"
         type="button"
         :disabled="!player.canPlay"
-        class="mt-8 px-10 py-4 rounded-full bg-slate-900 text-white text-lg font-bold shadow-lg hover:scale-105 active:scale-95 transition-all"
+        class="mt-4 px-10 py-4 rounded-full bg-slate-900 text-white text-lg font-bold shadow-lg hover:scale-105 active:scale-95 transition-all -translate-x-12"
         :class="!player.canPlay ? 'opacity-50' : 'hover:bg-slate-800'"
         @click="start"
       >
