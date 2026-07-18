@@ -33,10 +33,10 @@ function resumeLive(): void {
   a.src = player.streamUrl;
   a.load();
   wasPausedByUser.value = false;
-  a.play().then(() => {
-    player.setPlaying(true);
-  }).catch((e) => {
+  player.setPlaying(true);
+  a.play().catch((e) => {
     console.warn('[HomeView] resumeLive failed', e);
+    player.setPlaying(false);
   });
 }
 
@@ -52,11 +52,11 @@ function start(): void {
 
   started.value = true;
   wasPausedByUser.value = false;
+  player.setPlaying(true);
 
-  a.play().then(() => {
-    player.setPlaying(true);
-  }).catch((e) => {
+  a.play().catch((e) => {
     console.warn('[HomeView] start play failed', e);
+    player.setPlaying(false);
   });
 }
 
