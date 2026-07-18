@@ -236,6 +236,12 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
               <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
             </svg>
           </button>
+          <input
+            type="range" min="0" max="100" step="1"
+            :value="volumePct"
+            @input="player.setVolume(Number(($event.target as HTMLInputElement).value) / 100)"
+            class="w-20 h-1 accent-white cursor-pointer"
+          />
         </div>
       </div>
     </div>
