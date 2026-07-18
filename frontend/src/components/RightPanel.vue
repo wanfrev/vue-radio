@@ -132,22 +132,17 @@ const tabs: { key: Tab; label: string; icon: string }[] = [
             v-for="acc in donations.accounts" :key="acc.id"
             class="rounded-xl p-4" style="background: linear-gradient(135deg, rgba(34,211,238,0.06) 0%, rgba(168,85,247,0.06) 100%); border: 1px solid rgba(34,211,238,0.1);"
           >
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-semibold text-sm text-slate-100">{{ acc.bankName }}</span>
-              <span class="text-[10px] text-slate-500 uppercase">{{ typeLabel[acc.accountType] ?? acc.accountType }}</span>
-            </div>
-            <div class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Titular</div>
-            <div class="text-sm text-slate-200 mb-2">{{ acc.accountHolder }}</div>
-            <div class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">CLABE</div>
-            <div class="flex items-center gap-2">
-              <code class="font-mono text-sm text-cyber-cyan tabular-nums">{{ acc.clabe }}</code>
-              <button type="button" class="text-[10px] px-2 py-1 rounded-full bg-cyber-cyan/10 text-cyber-cyan hover:bg-cyber-cyan/20 transition"
-                @click="copyClabe(acc.id, acc.clabe)"
-              >{{ copyState && lastCopiedId === acc.id ? '¡Copiado!' : 'Copiar' }}</button>
-            </div>
-            <div v-if="acc.accountNumber" class="mt-2">
-              <div class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Núm. Cuenta</div>
-              <div class="font-mono text-sm text-slate-400 tabular-nums">{{ acc.accountNumber }}</div>
+            <span class="font-semibold text-sm text-slate-100 block mb-2">{{ acc.bankName }}</span>
+            <div class="space-y-2">
+              <div v-for="field in acc.fields" :key="field.label" class="text-sm">
+                <div class="text-[10px] text-slate-500 uppercase tracking-wider mb-0.5">{{ field.label }}</div>
+                <div class="flex items-center gap-2">
+                  <code class="font-mono text-sm" :class="field.copyable ? 'text-cyber-cyan' : 'text-slate-200'" :style="{ wordBreak: 'break-all' }">{{ field.value }}</code>
+                  <button v-if="field.copyable" type="button" class="text-[10px] px-2 py-1 rounded-full bg-cyber-cyan/10 text-cyber-cyan hover:bg-cyber-cyan/20 transition shrink-0"
+                    @click="copyClabe(acc.id, field.value)"
+                  >{{ copyState && lastCopiedId === acc.id ? '¡Copiado!' : 'Copiar' }}</button>
+                </div>
+              </div>
             </div>
             <p v-if="acc.notes" class="mt-2 text-[10px] text-slate-500">{{ acc.notes }}</p>
           </div>

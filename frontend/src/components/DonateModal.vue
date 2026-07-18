@@ -19,11 +19,6 @@ function onKeydown(e: KeyboardEvent): void {
   if (e.key === 'Escape') ui.close();
 }
 
-const typeLabel: Record<string, string> = {
-  ahorro: 'Ahorro',
-  cheques: 'Cheques',
-};
-
 onMounted(() => {
   window.addEventListener('keydown', onKeydown);
   if (!donations.loaded) donations.fetch();
@@ -32,6 +27,13 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown);
 });
+
+function headerColor(name: string): string {
+  const n = name.toLowerCase();
+  if (n === 'zelle' || n.includes('zelle')) return 'text-emerald-400';
+  if (n === 'pago móvil' || n.includes('pago móvil') || n.includes('pago movil')) return 'text-amber-400';
+  return 'text-slate-100';
+}
 </script>
 
 <template>
@@ -70,29 +72,19 @@ onBeforeUnmount(() => {
               :key="acc.id"
               class="rounded-lg bg-slate-800/60 ring-1 ring-slate-700 p-3"
             >
-              <div class="flex items-center justify-between mb-1.5">
-                <span class="font-semibold text-xs text-slate-100">{{ acc.bankName }}</span>
-                <span class="text-[10px] text-slate-500 bg-slate-700/50 px-1.5 py-0.5 rounded">{{ typeLabel[acc.accountType] ?? acc.accountType }}</span>
-              </div>
-              <div class="text-xs text-slate-300 space-y-1">
-                <div class="flex items-center gap-2">
-                  <span class="text-slate-500 text-[10px] uppercase tracking-wider shrink-0 w-14">Titular</span>
-                  <p>{{ acc.accountHolder }}</p>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-slate-500 text-[10px] uppercase tracking-wider shrink-0 w-14">CLABE</span>
-                  <p class="font-mono tabular-nums text-slate-100">{{ acc.clabe }}</p>
+              <span class="font-semibold text-xs block mb-1.5" :class="headerColor(acc.bankName)">{{ acc.bankName }}</span>
+              <div class="text-xs text-slate-300 space-y-1.5">
+                <div v-for="(field, fi) in acc.fields" :key="fi" class="flex items-center gap-2">
+                  <span class="text-slate-500 text-[10px] uppercase tracking-wider shrink-0 w-14">{{ field.label }}</span>
+                  <p class="font-mono tabular-nums" :class="field.copyable ? 'text-slate-100' : ''">{{ field.value }}</p>
                   <button
+                    v-if="field.copyable"
                     type="button"
                     class="text-[10px] px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-300 hover:bg-brand-500/30 transition ml-auto shrink-0"
-                    @click="copy(acc.clabe, acc.id)"
+                    @click="copy(field.value, acc.id * 100 + fi)"
                   >
-                    {{ copied === acc.id ? 'OK' : 'Copiar' }}
+                    {{ copied === acc.id * 100 + fi ? 'OK' : 'Copiar' }}
                   </button>
-                </div>
-                <div v-if="acc.accountNumber" class="flex items-center gap-2">
-                  <span class="text-slate-500 text-[10px] uppercase tracking-wider shrink-0 w-14">Núm. Cuenta</span>
-                  <p class="font-mono tabular-nums">{{ acc.accountNumber }}</p>
                 </div>
               </div>
               <p v-if="acc.notes" class="mt-2 text-[10px] text-slate-500">{{ acc.notes }}</p>

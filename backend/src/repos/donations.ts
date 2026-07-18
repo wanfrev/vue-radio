@@ -1,4 +1,4 @@
-import type { DonationAccount } from '../schemas/donations.js';
+import type { DonationAccount, DonationField } from '../schemas/donations.js';
 import { getDb } from '../db/index.js';
 
 interface SqlRow {
@@ -11,9 +11,12 @@ interface SqlRow {
   notes: string;
   sort_order: number;
   active: number;
+  fields: string;
 }
 
 function toAccount(row: SqlRow): DonationAccount {
+  let fields: DonationField[] = [];
+  try { fields = JSON.parse(row.fields ?? '[]') as DonationField[]; } catch { /* keep [] */ }
   return {
     id: row.id,
     bankName: row.bank_name,
@@ -24,6 +27,7 @@ function toAccount(row: SqlRow): DonationAccount {
     notes: row.notes,
     sortOrder: row.sort_order,
     active: row.active === 1,
+    fields,
   };
 }
 
@@ -61,8 +65,8 @@ class DonationsRepo {
     const db = getDb();
     const stmt = db.prepare(
       `INSERT INTO donation_accounts
-         (bank_name, account_holder, clabe, account_number, account_type, notes, sort_order, active)
-       VALUES (@bankName, @accountHolder, @clabe, @accountNumber, @accountType, @notes, @sortOrder, @active)`,
+         (bank_name, account_holder, clabe, account_number, account_type, notes, sort_order, active, fields)
+       VALUES (@bankName, @accountHolder, @clabe, @accountNumber, @accountType, @notes, @sortOrder, @active, @fields)`,
     );
     const result = stmt.run({
       bankName: input.bankName,
@@ -73,6 +77,7 @@ class DonationsRepo {
       notes: input.notes,
       sortOrder: input.sortOrder,
       active: input.active ? 1 : 0,
+      fields: JSON.stringify(input.fields ?? []),
     });
     const account = await this.findById(Number(result.lastInsertRowid));
     return account!;
@@ -114,6 +119,10 @@ class DonationsRepo {
     if (input.active !== undefined) {
       sets.push('active = @active');
       params.active = input.active ? 1 : 0;
+    }
+    if (input.fields !== undefined) {
+      sets.push('fields = @fields');
+      params.fields = JSON.stringify(input.fields);
     }
 
     if (sets.length === 0) return this.findById(id);

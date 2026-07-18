@@ -55,6 +55,12 @@ export interface StreamInfo {
   name: string;
 }
 
+export interface DonationField {
+  label: string;
+  value: string;
+  copyable: boolean;
+}
+
 export interface DonationAccount {
   id: number;
   bankName: string;
@@ -65,6 +71,7 @@ export interface DonationAccount {
   notes: string;
   sortOrder: number;
   active: boolean;
+  fields: DonationField[];
 }
 
 export const api = {
