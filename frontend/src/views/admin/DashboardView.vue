@@ -41,6 +41,7 @@ const player = usePlayerStore();
 const { copied, copy } = useClipboard();
 
 const liveState = ref<LiveState>({ isLive: false, streamerName: null, lastChecked: 0, azuracastAvailable: false });
+const autoDjPaused = ref(false);
 const creds = ref<Credentials | null>(null);
 const loading = ref(true);
 const actionLoading = ref<string | null>(null);
@@ -75,7 +76,10 @@ async function fetchData(): Promise<void> {
       fetch('/api/admin/live/status', { credentials: 'include', headers: { Accept: 'application/json' } }),
       fetch('/api/admin/live/credentials', { credentials: 'include', headers: { Accept: 'application/json' } }),
     ]);
-    if (sr.ok) liveState.value = (await sr.json()) as LiveState;
+    if (sr.ok) {
+      liveState.value = (await sr.json()) as LiveState;
+      if (liveState.value.isLive) autoDjPaused.value = false;
+    }
     if (cr.ok) creds.value = (await cr.json()) as Credentials;
     error.value = null;
   } catch (e) {
@@ -109,7 +113,12 @@ async function postAction(endpoint: string, label: string): Promise<void> {
     const res = await fetch(`/api/admin/live/${endpoint}`, { method: 'POST', credentials: 'include' });
     const ok = res.ok;
     addLog(label, ok);
-    if (ok) await fetchData();
+    if (ok) {
+      if (endpoint === 'stop-autodj') autoDjPaused.value = true;
+      else if (endpoint === 'restart-autodj') autoDjPaused.value = false;
+      else if (endpoint === 'disconnect') autoDjPaused.value = false;
+      await fetchData();
+    }
   } catch {
     addLog(label, false);
   } finally {
@@ -250,13 +259,17 @@ onBeforeUnmount(() => {
                 <span v-if="actionLoading === 'skip'" class="h-4 w-4 rounded-full border-2 border-slate-400/30 border-t-slate-300 animate-spin" />
                 <span v-else>Saltar canción</span>
               </button>
-              <button v-if="liveState.isLive" type="button" :disabled="actionLoading === 'restart-autodj'" class="btn text-sm justify-center bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 ring-1 ring-emerald-500/30" @click="postAction('restart-autodj', 'Reanudar AutoDJ')">
+              <button v-if="liveState.isLive || autoDjPaused" type="button" :disabled="actionLoading === 'restart-autodj'" class="btn text-sm justify-center bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 ring-1 ring-emerald-500/30" @click="postAction('restart-autodj', 'Reanudar AutoDJ')">
                 <span v-if="actionLoading === 'restart-autodj'" class="h-4 w-4 rounded-full border-2 border-emerald-400/30 border-t-emerald-300 animate-spin" />
                 <span v-else>Reanudar AutoDJ</span>
               </button>
               <button v-else type="button" :disabled="actionLoading === 'stop-autodj'" class="btn text-sm justify-center bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 ring-1 ring-amber-500/30" @click="postAction('stop-autodj', 'Pausar AutoDJ')">
                 <span v-if="actionLoading === 'stop-autodj'" class="h-4 w-4 rounded-full border-2 border-amber-400/30 border-t-amber-300 animate-spin" />
                 <span v-else>Pausar AutoDJ</span>
+              </button>
+              <button v-if="!(liveState.isLive || autoDjPaused)" type="button" :disabled="actionLoading === 'restart-autodj'" class="btn text-sm justify-center bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 ring-1 ring-emerald-500/30" @click="postAction('restart-autodj', 'Reanudar AutoDJ')">
+                <span v-if="actionLoading === 'restart-autodj'" class="h-4 w-4 rounded-full border-2 border-emerald-400/30 border-t-emerald-300 animate-spin" />
+                <span v-else>Reanudar AutoDJ</span>
               </button>
               <button type="button" :disabled="actionLoading === 'disconnect'" class="btn text-sm justify-center bg-red-500/15 text-red-300 hover:bg-red-500/25 ring-1 ring-red-500/30" @click="postAction('disconnect', 'Desconectar DJ')">
                 <span v-if="actionLoading === 'disconnect'" class="h-4 w-4 rounded-full border-2 border-red-400/30 border-t-red-300 animate-spin" />
