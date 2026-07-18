@@ -246,26 +246,22 @@ onBeforeUnmount(() => {
           <div class="card">
             <h2 class="font-semibold text-sm uppercase tracking-wider text-slate-500 mb-3">Controles</h2>
             <div class="grid grid-cols-2 gap-2">
-              <template v-if="!liveState.isLive">
-                <button type="button" :disabled="actionLoading === 'skip'" class="btn text-sm justify-center" @click="postAction('skip', 'Saltar canción')">
-                  <span v-if="actionLoading === 'skip'" class="h-4 w-4 rounded-full border-2 border-slate-400/30 border-t-slate-300 animate-spin" />
-                  <span v-else>Saltar canción</span>
-                </button>
-                <button type="button" :disabled="actionLoading === 'stop-autodj'" class="btn text-sm justify-center bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 ring-1 ring-amber-500/30" @click="postAction('stop-autodj', 'Pausar AutoDJ')">
-                  <span v-if="actionLoading === 'stop-autodj'" class="h-4 w-4 rounded-full border-2 border-amber-400/30 border-t-amber-300 animate-spin" />
-                  <span v-else>Pausar AutoDJ</span>
-                </button>
-              </template>
-              <template v-else>
-                <button type="button" :disabled="actionLoading === 'restart-autodj'" class="btn text-sm justify-center bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 ring-1 ring-emerald-500/30 col-span-2" @click="postAction('restart-autodj', 'Reanudar AutoDJ')">
-                  <span v-if="actionLoading === 'restart-autodj'" class="h-4 w-4 rounded-full border-2 border-emerald-400/30 border-t-emerald-300 animate-spin" />
-                  <span v-else>Reanudar AutoDJ</span>
-                </button>
-                <button type="button" :disabled="actionLoading === 'disconnect'" class="btn text-sm justify-center bg-red-500/15 text-red-300 hover:bg-red-500/25 ring-1 ring-red-500/30" @click="postAction('disconnect', 'Desconectar DJ')">
-                  <span v-if="actionLoading === 'disconnect'" class="h-4 w-4 rounded-full border-2 border-red-400/30 border-t-red-300 animate-spin" />
-                  <span v-else>Desconectar DJ</span>
-                </button>
-              </template>
+              <button type="button" :disabled="actionLoading === 'skip'" class="btn text-sm justify-center" @click="postAction('skip', 'Saltar canción')">
+                <span v-if="actionLoading === 'skip'" class="h-4 w-4 rounded-full border-2 border-slate-400/30 border-t-slate-300 animate-spin" />
+                <span v-else>Saltar canción</span>
+              </button>
+              <button v-if="liveState.isLive" type="button" :disabled="actionLoading === 'restart-autodj'" class="btn text-sm justify-center bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 ring-1 ring-emerald-500/30" @click="postAction('restart-autodj', 'Reanudar AutoDJ')">
+                <span v-if="actionLoading === 'restart-autodj'" class="h-4 w-4 rounded-full border-2 border-emerald-400/30 border-t-emerald-300 animate-spin" />
+                <span v-else>Reanudar AutoDJ</span>
+              </button>
+              <button v-else type="button" :disabled="actionLoading === 'stop-autodj'" class="btn text-sm justify-center bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 ring-1 ring-amber-500/30" @click="postAction('stop-autodj', 'Pausar AutoDJ')">
+                <span v-if="actionLoading === 'stop-autodj'" class="h-4 w-4 rounded-full border-2 border-amber-400/30 border-t-amber-300 animate-spin" />
+                <span v-else>Pausar AutoDJ</span>
+              </button>
+              <button type="button" :disabled="actionLoading === 'disconnect'" class="btn text-sm justify-center bg-red-500/15 text-red-300 hover:bg-red-500/25 ring-1 ring-red-500/30" @click="postAction('disconnect', 'Desconectar DJ')">
+                <span v-if="actionLoading === 'disconnect'" class="h-4 w-4 rounded-full border-2 border-red-400/30 border-t-red-300 animate-spin" />
+                <span v-else>Desconectar DJ</span>
+              </button>
             </div>
           </div>
 
