@@ -10,6 +10,7 @@ const np = useNowPlayingStore();
 const audioEl = ref<HTMLAudioElement | null>(null);
 const started = ref(false);
 const wasPausedByUser = ref(false);
+let ignorePause = false;
 
 function play(): void {
   const a = audioEl.value;
@@ -45,9 +46,9 @@ function start(): void {
   const a = audioEl.value;
   if (!a) return;
 
+  ignorePause = true;
   if (!a.src || a.src !== player.streamUrl) {
     a.src = player.streamUrl;
-    a.load();
   }
 
   started.value = true;
@@ -57,6 +58,7 @@ function start(): void {
   a.play().catch((e) => {
     console.warn('[HomeView] start play failed', e);
     player.setPlaying(false);
+    ignorePause = false;
   });
 }
 
@@ -110,8 +112,8 @@ onMounted(async () => {
     audioEl.value.volume = player.volume;
     audioEl.value.muted = player.muted;
 
-    audioEl.value.addEventListener('play', () => player.setPlaying(true));
-    audioEl.value.addEventListener('pause', () => player.setPlaying(false));
+    audioEl.value.addEventListener('play', () => { ignorePause = false; player.setPlaying(true); });
+    audioEl.value.addEventListener('pause', () => { if (!ignorePause) player.setPlaying(false); });
     audioEl.value.addEventListener('waiting', () => player.setBuffering(true));
     audioEl.value.addEventListener('playing', () => player.setBuffering(false));
     audioEl.value.addEventListener('canplay', () => player.setBuffering(false));
