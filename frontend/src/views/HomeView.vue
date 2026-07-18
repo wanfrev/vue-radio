@@ -187,7 +187,7 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
         class="w-auto max-h-[75vh] max-w-[95vw] object-contain"
       />
 
-      <div class="mt-8 rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-800 shadow-2xl px-4 py-3">
+      <div class="mt-8 rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-800 shadow-2xl px-4 py-3 sm:-translate-x-12">
         <div class="flex items-center gap-2">
           <button
             v-if="player.isPlaying"
