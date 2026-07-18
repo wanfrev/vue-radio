@@ -94,7 +94,7 @@ function mainLabel(name: string): string {
                   <p class="font-mono tabular-nums">{{ acc.accountNumber }}</p>
                 </div>
               </div>
-              <p v-if="acc.notes" class="mt-2 text-[10px] text-slate-500">{{ acc.notes }}</p>
+              <p v-if="acc.notes" class="mt-2 text-[10px] text-slate-200">{{ acc.notes }}</p>
             </div>
           </div>
 

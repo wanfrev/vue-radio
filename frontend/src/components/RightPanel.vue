@@ -137,7 +137,7 @@ const tabs: { key: Tab; label: string; icon: string }[] = [
               <div class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">C.I.</div>
               <div class="font-mono text-sm text-slate-400 tabular-nums">{{ acc.accountNumber }}</div>
             </div>
-            <p v-if="acc.notes" class="mt-2 text-[10px] text-slate-500">{{ acc.notes }}</p>
+            <p v-if="acc.notes" class="mt-2 text-[10px] text-slate-200">{{ acc.notes }}</p>
           </div>
         </div>
         <p v-else class="text-sm text-slate-500">No hay cuentas disponibles por ahora.</p>
