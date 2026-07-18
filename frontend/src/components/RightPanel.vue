@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { useNowPlayingStore } from '@/stores/nowPlaying';
 import { usePlayerStore } from '@/stores/player';
+import { useDonationsStore } from '@/stores/donations';
 import { useClipboard } from '@/composables/useClipboard';
 import LiveStatusBadge from '@/components/admin/LiveStatusBadge.vue';
 import { RouterLink } from 'vue-router';
@@ -10,9 +11,15 @@ type Tab = 'now' | 'history' | 'donate' | 'contact' | 'schedule';
 
 const np = useNowPlayingStore();
 const player = usePlayerStore();
+const donations = useDonationsStore();
 const active = ref<Tab>('now');
 const { copied: copyState, copy } = useClipboard();
 let lastCopiedId = -1;
+
+const typeLabel: Record<string, string> = {
+  ahorro: 'Ahorro',
+  cheques: 'Cheques',
+};
 
 function fmtTime(ts: number): string {
   return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -21,11 +28,6 @@ function fmtTime(ts: number): string {
 function copyClabe(id: number, clabe: string): void {
   lastCopiedId = id; copy(clabe);
 }
-
-const donations = [
-  { id: 1, bank: 'BBVA', holder: 'Nombre del titular', clabe: '012345678901234567', account: '1234567890', type: 'Ahorro' },
-  { id: 2, bank: 'Santander', holder: 'Nombre del titular', clabe: '098765432109876543', account: '0987654321', type: 'Cheques' },
-];
 
 const schedule = [
   { time: '06:00 – 10:00', show: 'Mañanas en vivo', host: 'Equipo de la casa' },
@@ -125,17 +127,17 @@ const tabs: { key: Tab; label: string; icon: string }[] = [
       <!-- DONATE -->
       <template v-else-if="active === 'donate'">
         <p class="text-sm text-slate-300 leading-relaxed mb-4">Si disfrutas la radio, considera apoyarnos con una donación.</p>
-        <div class="space-y-3">
+        <div v-if="donations.accounts.length > 0" class="space-y-3">
           <div
-            v-for="acc in donations" :key="acc.id"
+            v-for="acc in donations.accounts" :key="acc.id"
             class="rounded-xl p-4" style="background: linear-gradient(135deg, rgba(34,211,238,0.06) 0%, rgba(168,85,247,0.06) 100%); border: 1px solid rgba(34,211,238,0.1);"
           >
             <div class="flex items-center justify-between mb-2">
-              <span class="font-semibold text-sm text-slate-100">{{ acc.bank }}</span>
-              <span class="text-[10px] text-slate-500 uppercase">{{ acc.type }}</span>
+              <span class="font-semibold text-sm text-slate-100">{{ acc.bankName }}</span>
+              <span class="text-[10px] text-slate-500 uppercase">{{ typeLabel[acc.accountType] ?? acc.accountType }}</span>
             </div>
             <div class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Titular</div>
-            <div class="text-sm text-slate-200 mb-2">{{ acc.holder }}</div>
+            <div class="text-sm text-slate-200 mb-2">{{ acc.accountHolder }}</div>
             <div class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">CLABE</div>
             <div class="flex items-center gap-2">
               <code class="font-mono text-sm text-cyber-cyan tabular-nums">{{ acc.clabe }}</code>
@@ -143,8 +145,14 @@ const tabs: { key: Tab; label: string; icon: string }[] = [
                 @click="copyClabe(acc.id, acc.clabe)"
               >{{ copyState && lastCopiedId === acc.id ? '¡Copiado!' : 'Copiar' }}</button>
             </div>
+            <div v-if="acc.accountNumber" class="mt-2">
+              <div class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Núm. Cuenta</div>
+              <div class="font-mono text-sm text-slate-400 tabular-nums">{{ acc.accountNumber }}</div>
+            </div>
+            <p v-if="acc.notes" class="mt-2 text-[10px] text-slate-500">{{ acc.notes }}</p>
           </div>
         </div>
+        <p v-else class="text-sm text-slate-500">No hay cuentas disponibles por ahora.</p>
       </template>
 
       <!-- CONTACT -->

@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useUiStore } from '@/stores/ui';
+import { useDonationsStore } from '@/stores/donations';
 
 const ui = useUiStore();
+const donations = useDonationsStore();
 
-const copied = ref<'phone' | 'email' | null>(null);
+const copied = ref<number | null>(null);
 
-function copy(val: string, type: 'phone' | 'email') {
+function copy(val: string, id: number) {
   navigator.clipboard.writeText(val).then(() => {
-    copied.value = type;
+    copied.value = id;
     setTimeout(() => { copied.value = null; }, 2000);
   });
 }
@@ -17,8 +19,14 @@ function onKeydown(e: KeyboardEvent): void {
   if (e.key === 'Escape') ui.close();
 }
 
+const typeLabel: Record<string, string> = {
+  ahorro: 'Ahorro',
+  cheques: 'Cheques',
+};
+
 onMounted(() => {
   window.addEventListener('keydown', onKeydown);
+  if (!donations.loaded) donations.fetch();
 });
 
 onBeforeUnmount(() => {
@@ -56,48 +64,43 @@ onBeforeUnmount(() => {
             Si te gusta lo que escuchas, invítame un café para mantener la energía.
           </p>
 
-          <div class="space-y-2">
-            <div class="rounded-lg bg-slate-800/60 ring-1 ring-slate-700 p-3">
-              <span class="font-semibold text-xs text-amber-400">Pago Móvil</span>
-              <div class="mt-1.5 text-xs text-slate-300 space-y-1.5">
+          <div v-if="donations.accounts.length > 0" class="space-y-2">
+            <div
+              v-for="acc in donations.accounts"
+              :key="acc.id"
+              class="rounded-lg bg-slate-800/60 ring-1 ring-slate-700 p-3"
+            >
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-semibold text-xs text-slate-100">{{ acc.bankName }}</span>
+                <span class="text-[10px] text-slate-500 bg-slate-700/50 px-1.5 py-0.5 rounded">{{ typeLabel[acc.accountType] ?? acc.accountType }}</span>
+              </div>
+              <div class="text-xs text-slate-300 space-y-1">
                 <div class="flex items-center gap-2">
-                  <span class="text-slate-500 text-[10px] uppercase tracking-wider shrink-0 w-14">Teléfono</span>
-                  <p class="font-mono tabular-nums text-slate-100">04146590118</p>
+                  <span class="text-slate-500 text-[10px] uppercase tracking-wider shrink-0 w-14">Titular</span>
+                  <p>{{ acc.accountHolder }}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-slate-500 text-[10px] uppercase tracking-wider shrink-0 w-14">CLABE</span>
+                  <p class="font-mono tabular-nums text-slate-100">{{ acc.clabe }}</p>
                   <button
                     type="button"
-                    class="text-[10px] px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-300 hover:bg-brand-500/30 transition ml-auto"
-                    @click="copy('04146590118', 'phone')"
+                    class="text-[10px] px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-300 hover:bg-brand-500/30 transition ml-auto shrink-0"
+                    @click="copy(acc.clabe, acc.id)"
                   >
-                    {{ copied === 'phone' ? 'OK' : 'Copiar' }}
+                    {{ copied === acc.id ? 'OK' : 'Copiar' }}
                   </button>
                 </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-slate-500 text-[10px] uppercase tracking-wider shrink-0 w-14">C.I.</span>
-                  <p class="font-mono tabular-nums">10453881</p>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-slate-500 text-[10px] uppercase tracking-wider shrink-0 w-14">Banco</span>
-                  <p>Vzla</p>
+                <div v-if="acc.accountNumber" class="flex items-center gap-2">
+                  <span class="text-slate-500 text-[10px] uppercase tracking-wider shrink-0 w-14">Núm. Cuenta</span>
+                  <p class="font-mono tabular-nums">{{ acc.accountNumber }}</p>
                 </div>
               </div>
+              <p v-if="acc.notes" class="mt-2 text-[10px] text-slate-500">{{ acc.notes }}</p>
             </div>
+          </div>
 
-            <div class="rounded-lg bg-slate-800/60 ring-1 ring-slate-700 p-3">
-              <span class="font-semibold text-xs text-emerald-400">ZELLE</span>
-              <div class="mt-1.5 text-xs text-slate-300 space-y-1.5">
-                <div class="flex items-center gap-2">
-                  <span class="text-slate-500 text-[10px] uppercase tracking-wider shrink-0">Correo</span>
-                  <p class="font-mono text-slate-100 break-all">vilchezelvis@gmail.com</p>
-                  <button
-                    type="button"
-                    class="text-[10px] px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-300 hover:bg-brand-500/30 transition shrink-0 ml-auto"
-                    @click="copy('vilchezelvis@gmail.com', 'email')"
-                  >
-                    {{ copied === 'email' ? 'OK' : 'Copiar' }}
-                  </button>
-                </div>
-              </div>
-            </div>
+          <div v-else class="text-xs text-slate-500 text-center py-6">
+            No hay cuentas disponibles por ahora.
           </div>
         </div>
       </div>
