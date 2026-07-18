@@ -30,9 +30,17 @@ onBeforeUnmount(() => {
 
 function headerColor(name: string): string {
   const n = name.toLowerCase();
-  if (n === 'zelle' || n.includes('zelle')) return 'text-emerald-400';
-  if (n === 'pago móvil' || n.includes('pago móvil') || n.includes('pago movil')) return 'text-amber-400';
+  if (n.includes('zelle')) return 'text-emerald-400';
+  if (n.includes('pago móvil') || n.includes('pago movil')) return 'text-amber-400';
   return 'text-slate-100';
+}
+
+function mainLabel(name: string): string {
+  const n = name.toLowerCase();
+  if (n.includes('zelle')) return 'Correo';
+  if (n.includes('pago móvil') || n.includes('pago movil')) return 'Teléfono';
+  if (n.includes('paypal')) return 'Email';
+  return 'Dato';
 }
 </script>
 
@@ -73,18 +81,17 @@ function headerColor(name: string): string {
               class="rounded-lg bg-slate-800/60 ring-1 ring-slate-700 p-3"
             >
               <span class="font-semibold text-xs block mb-1.5" :class="headerColor(acc.bankName)">{{ acc.bankName }}</span>
-              <div class="text-xs text-slate-300 space-y-1.5">
-                <div v-for="(field, fi) in acc.fields" :key="fi" class="flex items-center gap-2">
-                  <span class="text-slate-500 text-[10px] uppercase tracking-wider shrink-0 w-14">{{ field.label }}</span>
-                  <p class="font-mono tabular-nums" :class="field.copyable ? 'text-slate-100' : ''">{{ field.value }}</p>
-                  <button
-                    v-if="field.copyable"
-                    type="button"
-                    class="text-[10px] px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-300 hover:bg-brand-500/30 transition ml-auto shrink-0"
-                    @click="copy(field.value, acc.id * 100 + fi)"
-                  >
-                    {{ copied === acc.id * 100 + fi ? 'OK' : 'Copiar' }}
+              <div class="text-xs text-slate-300 space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-slate-500 text-[10px] uppercase tracking-wider shrink-0 w-14">{{ mainLabel(acc.bankName) }}</span>
+                  <p class="font-mono tabular-nums text-slate-100 break-all">{{ acc.accountHolder }}</p>
+                  <button type="button" class="text-[10px] px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-300 hover:bg-brand-500/30 transition ml-auto shrink-0" @click="copy(acc.accountHolder, acc.id)">
+                    {{ copied === acc.id ? 'OK' : 'Copiar' }}
                   </button>
+                </div>
+                <div v-if="acc.accountNumber" class="flex items-center gap-2">
+                  <span class="text-slate-500 text-[10px] uppercase tracking-wider shrink-0 w-14">C.I.</span>
+                  <p class="font-mono tabular-nums">{{ acc.accountNumber }}</p>
                 </div>
               </div>
               <p v-if="acc.notes" class="mt-2 text-[10px] text-slate-500">{{ acc.notes }}</p>
@@ -101,33 +108,12 @@ function headerColor(name: string): string {
 </template>
 
 <style>
-.popover-enter-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-.popover-leave-active {
-  transition: opacity 0.1s ease, transform 0.1s ease;
-}
-.popover-enter-from {
-  opacity: 0;
-  transform: translateY(-0.5rem);
-}
-.popover-leave-to {
-  opacity: 0;
-  transform: translateY(-0.5rem);
-}
-
-.popover-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-.popover-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-.popover-scroll::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.25);
-  border-radius: 2px;
-}
-.popover-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
-}
+.popover-enter-active { transition: opacity 0.15s ease, transform 0.15s ease; }
+.popover-leave-active { transition: opacity 0.1s ease, transform 0.1s ease; }
+.popover-enter-from { opacity: 0; transform: translateY(-0.5rem); }
+.popover-leave-to { opacity: 0; transform: translateY(-0.5rem); }
+.popover-scroll::-webkit-scrollbar { width: 4px; }
+.popover-scroll::-webkit-scrollbar-track { background: transparent; }
+.popover-scroll::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 2px; }
+.popover-scroll { scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, 0.25) transparent; }
 </style>
