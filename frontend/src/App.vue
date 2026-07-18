@@ -25,7 +25,7 @@ onMounted(() => {
   <CosmicBackground v-if="!isAdmin" />
 
   <div class="min-h-screen flex flex-col text-slate-100 relative">
-    <div v-if="!isAdmin" class="fixed top-0 inset-x-0 z-30 flex items-center justify-end gap-3 px-4 py-3">
+    <div v-if="!isAdmin" class="fixed top-0 inset-x-0 z-30 flex items-center justify-center sm:justify-end gap-3 px-4 py-3">
       <a
         href="https://whatsapp.com/channel/0029Vb8qgaeFnSzDE2tApn0J"
         target="_blank"

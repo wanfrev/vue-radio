@@ -179,16 +179,16 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
 </script>
 
 <template>
-  <section class="flex flex-col items-start justify-center min-h-[100dvh] px-4 pt-14 pb-8">
-    <div class="flex flex-col items-center ml-12">
+  <section class="flex flex-col items-center sm:items-start justify-center min-h-[100dvh] px-4 pt-14 pb-8">
+    <div class="flex flex-col items-center sm:ml-12">
       <img
         :src="logoUrl"
         alt="AireMedia"
         class="w-auto max-h-[75vh] max-w-[95vw] object-contain"
       />
 
-      <div class="mt-8 w-80 max-w-[calc(100vw-2rem)] rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-800 shadow-2xl p-4 -translate-x-8">
-        <div class="flex items-center gap-3">
+      <div class="mt-8 rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-800 shadow-2xl px-4 py-3 sm:-translate-x-8">
+        <div class="flex items-center gap-2">
           <button
             v-if="player.isPlaying"
             type="button"
