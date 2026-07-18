@@ -186,27 +186,7 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
         class="w-auto max-h-[75vh] max-w-[95vw] object-contain"
       />
 
-      <button
-        v-if="!started"
-        type="button"
-        :disabled="!player.canPlay"
-        class="mt-4 px-10 py-4 rounded-full bg-slate-900 text-white text-lg font-bold shadow-lg hover:scale-105 active:scale-95 transition-all -translate-x-12"
-        :class="!player.canPlay ? 'opacity-50' : 'hover:bg-slate-800'"
-        @click="start"
-      >
-        <span v-if="!player.canPlay" class="inline-flex items-center gap-2">
-          <span class="inline-block h-5 w-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-          Conectando...
-        </span>
-        <span v-else class="inline-flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
-            <path d="M8 5v14l11-7z" />
-          </svg>
-          Escuchar en vivo
-        </span>
-      </button>
-
-      <div v-if="started" class="mt-8 w-80 max-w-[calc(100vw-2rem)] rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-800 shadow-2xl p-4 -translate-x-8">
+      <div class="mt-8 w-80 max-w-[calc(100vw-2rem)] rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-800 shadow-2xl p-4 -translate-x-8">
         <div class="flex items-center gap-3">
           <button
             v-if="player.isPlaying"
@@ -219,7 +199,7 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
             </svg>
           </button>
           <button
-            v-else
+            v-else-if="started"
             type="button"
             class="flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-500 active:scale-95 transition-all shrink-0"
             @click="resumeLive"
@@ -228,6 +208,20 @@ const volumePct = computed(() => player.muted ? 0 : Math.round(player.volume * 1
               <path d="M8 5v14l11-7z" />
             </svg>
             Volver al en vivo
+          </button>
+          <button
+            v-else
+            type="button"
+            :disabled="!player.canPlay"
+            class="flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-500 active:scale-95 transition-all shrink-0"
+            :class="!player.canPlay ? 'opacity-50' : ''"
+            @click="start"
+          >
+            <span v-if="!player.canPlay" class="inline-block h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+            <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+            Escuchar en vivo
           </button>
           <button type="button" class="text-slate-400 hover:text-white transition shrink-0" @click="player.setMuted(!player.muted)">
             <svg v-if="player.muted || volumePct === 0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
