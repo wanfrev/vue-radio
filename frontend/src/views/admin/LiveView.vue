@@ -84,7 +84,7 @@ function logTime(d: Date): string {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-const azuracastUrl = computed(() => creds.value?.fullUrl.replace(/\/stream.*$/, '/dashboard') ?? '#');
+const azuracastUrl = 'https://radio.airemedia.net/dashboard';
 
 onMounted(() => {
   void fetchData();

@@ -30,12 +30,6 @@ interface AzFile {
   mtime: number;
 }
 
-interface AzPlaylist {
-  id: number;
-  name: string;
-  is_enabled: boolean;
-}
-
 const np = useNowPlayingStore();
 const player = usePlayerStore();
 const { copied, copy } = useClipboard();
@@ -51,12 +45,7 @@ let pollTimer: ReturnType<typeof setInterval> | null = null;
 let lastCopied = '';
 
 const musicFiles = ref<AzFile[]>([]);
-const playlists = ref<AzPlaylist[]>([]);
-const uploading = ref(false);
 const musicSearch = ref('');
-const selectedMusic = ref<Set<number>>(new Set());
-const selectedPlaylist = ref<number | null>(null);
-const musicMsg = ref<string | null>(null);
 
 const filteredMusic = computed(() => {
   const q = musicSearch.value.toLowerCase();
@@ -91,17 +80,10 @@ async function fetchData(): Promise<void> {
 
 async function fetchMusic(): Promise<void> {
   try {
-    const [fr, pr] = await Promise.all([
-      fetch('/api/admin/music/files', { credentials: 'include', headers: { Accept: 'application/json' } }),
-      fetch('/api/admin/music/playlists', { credentials: 'include', headers: { Accept: 'application/json' } }),
-    ]);
-    if (fr.ok) {
-      const d = await fr.json();
+    const res = await fetch('/api/admin/music/files', { credentials: 'include', headers: { Accept: 'application/json' } });
+    if (res.ok) {
+      const d = await res.json();
       musicFiles.value = (d.files as AzFile[]) ?? [];
-    }
-    if (pr.ok) {
-      const d = await pr.json();
-      playlists.value = (d.playlists as AzPlaylist[]) ?? [];
     }
   } catch {}
 }
@@ -139,62 +121,7 @@ function fmtSize(b: number): string {
   return (b / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
-function toggleSelect(id: number): void { const s = selectedMusic.value; s.has(id) ? s.delete(id) : s.add(id); selectedMusic.value = new Set(s); }
-function selectAll(): void {
-  if (selectedMusic.value.size === filteredMusic.value.length) selectedMusic.value = new Set();
-  else selectedMusic.value = new Set(filteredMusic.value.map((f) => f.id));
-}
-
-async function doUpload(e: Event): Promise<void> {
-  const input = e.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (!file) return;
-  uploading.value = true;
-  try {
-    const form = new FormData();
-    form.append('file', file);
-    const res = await fetch('/api/admin/music/upload', { method: 'POST', credentials: 'include', body: form });
-    if (!res.ok) throw new Error('Upload failed');
-    await fetchMusic();
-    input.value = '';
-  } catch { error.value = 'Error al subir'; }
-  finally { uploading.value = false; }
-}
-
-async function doDeleteMusic(id: number): Promise<void> {
-  if (!confirm('Eliminar archivo?')) return;
-  try {
-    await fetch(`/api/admin/music/file/${id}`, { method: 'DELETE', credentials: 'include' });
-    await fetchMusic();
-  } catch { error.value = 'Error al eliminar'; }
-}
-
-async function doDeleteSelected(): Promise<void> {
-  if (selectedMusic.value.size === 0) return;
-  if (!confirm(`Eliminar ${selectedMusic.value.size} archivos?`)) return;
-  for (const id of selectedMusic.value) {
-    await fetch(`/api/admin/music/file/${id}`, { method: 'DELETE', credentials: 'include' });
-  }
-  selectedMusic.value = new Set();
-  await fetchMusic();
-}
-
-async function addToPlaylist(): Promise<void> {
-  if (!selectedPlaylist.value || selectedMusic.value.size === 0) return;
-  try {
-    await fetch(`/api/admin/music/playlist/${selectedPlaylist.value}/add`, {
-      method: 'POST', credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ media: [...selectedMusic.value] }),
-    });
-    const pl = playlists.value.find((p) => p.id === selectedPlaylist.value);
-    musicMsg.value = `${selectedMusic.value.size} añadidos a "${pl?.name ?? ''}"`;
-    selectedMusic.value = new Set();
-    setTimeout(() => (musicMsg.value = null), 3000);
-  } catch { error.value = 'Error al agregar a playlist'; }
-}
-
-const azuracastUrl = computed(() => creds.value?.fullUrl.replace(/\/stream.*$/, '/dashboard') ?? '#');
+const azuracastUrl = 'https://radio.airemedia.net/dashboard';
 
 onMounted(() => {
   void fetchData();
@@ -331,54 +258,29 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <!-- Música: biblioteca + subir -->
+      <!-- Música: biblioteca (solo lectura) -->
       <div class="card mb-6">
         <div class="flex flex-wrap items-center gap-3 mb-4">
           <h2 class="font-semibold text-sm uppercase tracking-wider text-slate-500">Biblioteca</h2>
           <div class="flex-1" />
-          <label :class="['inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition', uploading ? 'bg-slate-800 text-slate-400' : 'bg-brand-600/20 text-brand-300 hover:bg-brand-600/30 ring-1 ring-brand-500/30']">
-            <span v-if="uploading" class="h-4 w-4 rounded-full border-2 border-slate-400/30 border-t-slate-300 animate-spin" />
-            <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4"><path fill-rule="evenodd" d="M12 3a.75.75 0 01.75.75v7.5h7.5a.75.75 0 010 1.5h-7.5v7.5a.75.75 0 01-1.5 0v-7.5h-7.5a.75.75 0 010-1.5h7.5v-7.5A.75.75 0 0112 3z" clip-rule="evenodd"/></svg>
-            {{ uploading ? 'Subiendo...' : 'Subir MP3' }}
-            <input type="file" accept="audio/mpeg,.mp3" class="hidden" :disabled="uploading" @change="doUpload" />
-          </label>
-          <select v-model="selectedPlaylist" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200">
-            <option :value="null" disabled>Playlist...</option>
-            <option v-for="pl in playlists" :key="pl.id" :value="pl.id">{{ pl.name }}</option>
-          </select>
-          <button type="button" :disabled="!selectedPlaylist || selectedMusic.size === 0" class="px-4 py-2 rounded-lg text-sm bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30 ring-1 ring-emerald-500/30 transition disabled:opacity-30 disabled:cursor-not-allowed" @click="addToPlaylist">
-            Agregar ({{ selectedMusic.size }})
-          </button>
-          <button v-if="selectedMusic.size > 0" type="button" class="px-4 py-2 rounded-lg text-sm bg-red-600/20 text-red-300 hover:bg-red-600/30 ring-1 ring-red-500/30 transition" @click="doDeleteSelected">
-            Eliminar
-          </button>
+          <input v-model="musicSearch" type="text" placeholder="Buscar..." class="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-slate-600 w-48" />
         </div>
 
-        <div v-if="musicMsg" class="mb-4 px-4 py-2 bg-emerald-500/10 text-emerald-300 text-sm rounded-lg ring-1 ring-emerald-500/20">{{ musicMsg }}</div>
-
-        <input v-model="musicSearch" type="text" placeholder="Buscar..." class="w-full mb-4 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-slate-600" />
-
-        <div v-if="filteredMusic.length === 0" class="text-sm text-slate-500 text-center py-8">No hay archivos. Sube tu primer MP3.</div>
+        <div v-if="filteredMusic.length === 0" class="text-sm text-slate-500 text-center py-8">No hay archivos en la biblioteca.</div>
         <div v-else class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b border-slate-800 text-left text-slate-500 text-xs uppercase tracking-wider">
-                <th class="py-3 px-3 w-10"><input type="checkbox" :checked="selectedMusic.size === filteredMusic.length && filteredMusic.length > 0" @change="selectAll" class="accent-brand-500" /></th>
                 <th class="py-3 px-3">Nombre</th>
                 <th class="py-3 px-3 hidden sm:table-cell">Tamaño</th>
-                <th class="py-3 px-3 w-24" />
               </tr>
             </thead>
             <tbody>
-              <tr v-for="f in filteredMusic" :key="f.id" :class="['border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors', selectedMusic.has(f.id) ? 'bg-brand-500/5' : '']">
-                <td class="py-2.5 px-3"><input type="checkbox" :checked="selectedMusic.has(f.id)" @change="toggleSelect(f.id)" class="accent-brand-500" /></td>
+              <tr v-for="f in filteredMusic" :key="f.id" class="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
                 <td class="py-2.5 px-3">
                   <div class="font-medium text-slate-200 truncate max-w-[200px] sm:max-w-xs">{{ f.name }}</div>
                 </td>
                 <td class="py-2.5 px-3 text-slate-400 hidden sm:table-cell">{{ fmtSize(f.size) }}</td>
-                <td class="py-2.5 px-3">
-                  <button type="button" class="text-xs px-2 py-1 rounded text-red-400 hover:bg-red-400/10 transition" @click="doDeleteMusic(f.id)">Eliminar</button>
-                </td>
               </tr>
             </tbody>
           </table>
