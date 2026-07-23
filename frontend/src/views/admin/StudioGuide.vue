@@ -34,6 +34,7 @@ function generateButtConf(): string {
   if (!creds.value) return '';
   return [
     '[main]',
+    'serverName=AIREMEDIA',
     'serverType=0',
     `serverAddr=${creds.value.host}`,
     `serverPort=${creds.value.port}`,
@@ -146,19 +147,23 @@ function copyField(field: string, value: string) {
           <div class="p-3 bg-slate-800/50 rounded-lg space-y-1.5 text-sm">
             <p class="font-medium text-slate-300 mb-1">Datos para configurar manual:</p>
             <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">Servidor:</span>
-              <span class="text-slate-200 font-mono text-xs">{{ creds.host }}:{{ creds.port }}</span>
+              <span class="text-slate-500">Name:</span>
+              <span class="text-slate-200 font-mono text-xs">AIREMEDIA</span>
             </div>
             <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">Mountpoint:</span>
-              <span class="text-slate-200 font-mono text-xs">{{ creds.mountpoint }}</span>
+              <span class="text-slate-500">Type:</span>
+              <span class="text-slate-200 font-mono text-xs">Icecast</span>
             </div>
             <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">Usuario:</span>
-              <span class="text-slate-200 font-mono text-xs">{{ creds.username }}</span>
+              <span class="text-slate-500">Address:</span>
+              <span class="text-slate-200 font-mono text-xs">{{ creds.host }}</span>
             </div>
             <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">Contraseña:</span>
+              <span class="text-slate-500">Port:</span>
+              <span class="text-slate-200 font-mono text-xs">{{ creds.port }}</span>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-slate-500">Password:</span>
               <div class="flex items-center gap-2">
                 <span class="text-slate-200 font-mono text-xs">{{ creds.password }}</span>
                 <button
@@ -167,6 +172,14 @@ function copyField(field: string, value: string) {
                   @click="copyField('pass', creds.password)"
                 >{{ copied && lastCopied === 'pass' ? 'Copiado' : 'Copiar' }}</button>
               </div>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-slate-500">Icecast mountpoint:</span>
+              <span class="text-slate-200 font-mono text-xs">{{ creds.mountpoint }}</span>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-slate-500">Icecast user:</span>
+              <span class="text-slate-200 font-mono text-xs">{{ creds.username }}</span>
             </div>
           </div>
         </template>

@@ -118,7 +118,7 @@ export const azuracast = {
       host,
       port,
       mountpoint: env.AZURACAST_LIVE_DJ_MOUNTPOINT!,
-      username: 'source',
+      username: 'vilchezelvis',
       password: env.AZURACAST_LIVE_DJ_PASSWORD || '',
       fullUrl: `${host}:${port}${env.AZURACAST_LIVE_DJ_MOUNTPOINT}`,
     };
