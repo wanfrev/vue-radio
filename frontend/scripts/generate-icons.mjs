@@ -1,7 +1,7 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import sharp from 'sharp';
 
-const SOURCE = 'public/icon-source.svg';
+const SOURCE = 'public/icon-source.png';
 const OUT = 'public/icons';
 
 mkdirSync(OUT, { recursive: true });

@@ -8,7 +8,7 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon-source.svg', 'icons/icon-192.png', 'icons/icon-512.png'],
+      includeAssets: ['icon-source.png', 'icons/icon-192.png', 'icons/icon-512.png'],
       manifest: {
         name: 'AireMedia',
         short_name: 'AireMedia',
