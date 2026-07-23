@@ -8,10 +8,10 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png'],
+      includeAssets: ['icon-source.svg', 'icons/icon-192.png', 'icons/icon-512.png'],
       manifest: {
-        name: 'Radio 24/7',
-        short_name: 'Radio',
+        name: 'AireMedia',
+        short_name: 'AireMedia',
         description: 'Música 24/7, sin pausas. El audio sigue sonando aunque navegues por la web.',
         theme_color: '#0b1220',
         background_color: '#0b1220',
