@@ -30,6 +30,12 @@ interface AzFile {
   mtime: number;
 }
 
+interface AzPlaylist {
+  id: number;
+  name: string;
+  is_enabled: boolean;
+}
+
 const np = useNowPlayingStore();
 const player = usePlayerStore();
 const { copied, copy } = useClipboard();
@@ -45,6 +51,7 @@ let pollTimer: ReturnType<typeof setInterval> | null = null;
 let lastCopied = '';
 
 const musicFiles = ref<AzFile[]>([]);
+const playlists = ref<AzPlaylist[]>([]);
 const musicSearch = ref('');
 
 const filteredMusic = computed(() => {
@@ -80,10 +87,17 @@ async function fetchData(): Promise<void> {
 
 async function fetchMusic(): Promise<void> {
   try {
-    const res = await fetch('/api/admin/music/files', { credentials: 'include', headers: { Accept: 'application/json' } });
-    if (res.ok) {
-      const d = await res.json();
+    const [fr, pr] = await Promise.all([
+      fetch('/api/admin/music/files', { credentials: 'include', headers: { Accept: 'application/json' } }),
+      fetch('/api/admin/music/playlists', { credentials: 'include', headers: { Accept: 'application/json' } }),
+    ]);
+    if (fr.ok) {
+      const d = await fr.json();
       musicFiles.value = (d.files as AzFile[]) ?? [];
+    }
+    if (pr.ok) {
+      const d = await pr.json();
+      playlists.value = (d.playlists as AzPlaylist[]) ?? [];
     }
   } catch {}
 }
@@ -256,6 +270,18 @@ onBeforeUnmount(() => {
             </a>
           </div>
         </div>
+      </div>
+
+      <!-- Playlists -->
+      <div class="card mb-6">
+        <h2 class="font-semibold text-sm uppercase tracking-wider text-slate-500 mb-3">Playlists</h2>
+        <div v-if="playlists.length === 0" class="text-sm text-slate-500 text-center py-4">No hay playlists configuradas.</div>
+        <ul v-else class="space-y-1.5">
+          <li v-for="pl in playlists" :key="pl.id" class="flex items-center gap-2 text-sm">
+            <span :class="['inline-block h-2 w-2 rounded-full shrink-0', pl.is_enabled ? 'bg-emerald-400' : 'bg-slate-600']" />
+            <span :class="pl.is_enabled ? 'text-slate-200' : 'text-slate-500'">{{ pl.name }}</span>
+          </li>
+        </ul>
       </div>
 
       <!-- Música: biblioteca (solo lectura) -->
